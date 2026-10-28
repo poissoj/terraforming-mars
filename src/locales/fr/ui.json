@@ -1205,5 +1205,7 @@
   "This action can no longer be cancelled": "Cette action ne peut plus être annulée",
   "This player is controlled by the AI.": "Ce joueur est contrôlé par l'IA.",
   "One": "Un",
-  "Many": "Plusieurs"
+  "Many": "Plusieurs",
+  "Track +${0} before trading": "Piste +${0} avant de commercer",
+  "optional": "facultatif"
 }

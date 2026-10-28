@@ -248,6 +248,7 @@ export class Server {
       cardsInHandNbr: player.cardsInHand.length,
       citiesCount: game.board.getCities(player).length,
       coloniesCount: player.getColoniesCount(),
+      colonyTradeOffset: player.colonies.tradeOffset,
       color: player.color,
       energy: player.energy,
       energyProduction: player.production.energy,
