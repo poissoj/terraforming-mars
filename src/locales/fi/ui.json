@@ -1612,4 +1612,6 @@
   "This player is controlled by the AI.": "Tätä pelaajaa ohjaa tekoäly.",
   "One": "Yksi",
   "Many": "Useita"
+,
+  "Track +${0} before trading": "Rata +${0} ennen kaupankäyntiä"
 }
