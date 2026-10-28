@@ -2241,5 +2241,7 @@
   "Converting plants or heat": "转换植物或热量",
   "Passing": "跳过",
   "pays ${0}": "支付 ${0}",
-  "Amount ${0}": "数量 ${0}"
+  "Amount ${0}": "数量 ${0}",
+  "Track +${0} before trading": "贸易前轨道 +${0}",
+  "optional": "可选"
 }

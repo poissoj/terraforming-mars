@@ -2055,5 +2055,7 @@
   "Converting plants or heat": "Zamiana roślin lub ciepła",
   "Passing": "Pasowanie",
   "pays ${0}": "płaci ${0}",
-  "Amount ${0}": "Ilość ${0}"
+  "Amount ${0}": "Ilość ${0}",
+  "Track +${0} before trading": "Tor +${0} przed handlem",
+  "optional": "opcjonalnie"
 }

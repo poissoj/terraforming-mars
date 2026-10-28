@@ -1257,5 +1257,7 @@
   "Converting plants or heat": "Kasvien tai lämmön muunto",
   "Passing": "Passaaminen",
   "pays ${0}": "maksaa ${0}",
-  "Amount ${0}": "Määrä ${0}"
+  "Amount ${0}": "Määrä ${0}",
+  "Track +${0} before trading": "Ura +${0} ennen kaupankäyntiä",
+  "optional": "valinnainen"
 }

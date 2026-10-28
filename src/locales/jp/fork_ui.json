@@ -1631,5 +1631,7 @@
   "Converting plants or heat": "植物か熱の変換",
   "Passing": "パス",
   "pays ${0}": "${0} を支払う",
-  "Amount ${0}": "数量：${0}"
+  "Amount ${0}": "数量：${0}",
+  "Track +${0} before trading": "交易前にトラック +${0}",
+  "optional": "任意"
 }

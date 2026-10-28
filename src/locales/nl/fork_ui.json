@@ -1884,5 +1884,7 @@
   "Converting plants or heat": "Planten of warmte omzetten",
   "Passing": "Beurt overslaan",
   "pays ${0}": "betaalt ${0}",
-  "Amount ${0}": "Aantal ${0}"
+  "Amount ${0}": "Aantal ${0}",
+  "Track +${0} before trading": "Spoor +${0} voor de handel",
+  "optional": "optioneel"
 }

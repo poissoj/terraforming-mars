@@ -1509,5 +1509,7 @@
   "Converting plants or heat": "식물 또는 열 전환",
   "Passing": "패스",
   "pays ${0}": "${0} 지불",
-  "Amount ${0}": "수량 ${0}"
+  "Amount ${0}": "수량 ${0}",
+  "Track +${0} before trading": "교역 전 트랙 +${0}",
+  "optional": "선택 사항"
 }

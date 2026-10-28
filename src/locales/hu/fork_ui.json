@@ -1439,5 +1439,7 @@
   "Converting plants or heat": "Növény vagy hő átváltása",
   "Passing": "Passzolás",
   "pays ${0}": "fizet: ${0}",
-  "Amount ${0}": "Mennyiség: ${0}"
+  "Amount ${0}": "Mennyiség: ${0}",
+  "Track +${0} before trading": "Sáv +${0} kereskedés előtt",
+  "optional": "nem kötelező"
 }

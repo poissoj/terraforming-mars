@@ -2523,5 +2523,7 @@
   "Converting plants or heat": "Convertire piante o calore",
   "Passing": "Passare",
   "pays ${0}": "paga ${0}",
-  "Amount ${0}": "Quantità ${0}"
+  "Amount ${0}": "Quantità ${0}",
+  "Track +${0} before trading": "Tracciato +${0} prima di commerciare",
+  "optional": "facoltativo"
 }
