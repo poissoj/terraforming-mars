@@ -2,14 +2,18 @@
 // (the bundler only knows the default export there).
 
 /** A table column: value returns the sort value, format the display (without slot). Cells with links/bars come via slot. */
-// Row is opaque here: the table handles lists of unrelated entity types. Individual column factories
-// annotate their own row type, which is assignable to this callback (never is the bottom type).
-export type StatsColumn<Row = never> = {
+// The table handles lists of unrelated row types. A bivariant callback lets each column keep its own
+// row type (EntityRow, StatsGame …) while the table can call it with an opaque row.
+export type BivariantCallback<Arg, Result> = {
+  bivarianceHack(arg: Arg): Result;
+}['bivarianceHack'];
+
+export type StatsColumn = {
   key: string;
   /** English, gets translated. */
   label: string;
-  value: (row: Row) => number | string | undefined;
-  format?: (row: Row) => string;
+  value: BivariantCallback<unknown, number | string | undefined>;
+  format?: BivariantCallback<unknown, string>;
   /** Text left-aligned and sorted ascending; numbers right-aligned and descending. */
   text?: boolean;
   /** Direction of the first click when it differs from the default above (e.g. a left-aligned date, newest first). */

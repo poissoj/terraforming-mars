@@ -27,7 +27,7 @@
 
 <script lang="ts">
 import {defineComponent, PropType} from 'vue';
-import {StatsColumn} from './statsTypes';
+import {BivariantCallback, StatsColumn} from './statsTypes';
 
 // Text columns start ascending, numbers descending – unless the column says otherwise
 function firstAscending(column: StatsColumn): boolean {
@@ -40,10 +40,10 @@ export default defineComponent({
   props: {
     columns: {type: Array as PropType<ReadonlyArray<StatsColumn>>, required: true},
     rows: {type: Array as PropType<ReadonlyArray<unknown>>, required: true},
-    rowKey: {type: Function as PropType<(row: never) => string>, required: true},
+    rowKey: {type: Function as PropType<BivariantCallback<unknown, string>>, required: true},
     initialSort: {type: String, required: true},
     // Target of a row click (opens in a new tab like the result links); without it rows are not clickable
-    rowHref: {type: Function as PropType<(row: never) => string | undefined>, required: false},
+    rowHref: {type: Function as PropType<BivariantCallback<unknown, string | undefined>>, required: false},
   },
   data() {
     const column = this.columns.find((candidate) => candidate.key === this.initialSort);
@@ -60,8 +60,8 @@ export default defineComponent({
       }
       const direction = this.ascending ? 1 : -1;
       return [...this.rows].sort((first, second) => {
-        const left = column.value(first as never);
-        const right = column.value(second as never);
+        const left = column.value(first);
+        const right = column.value(second);
         // Unknown values always at the end, regardless of sort direction
         if (left === undefined || right === undefined) {
           return left === right ? 0 : left === undefined ? 1 : -1;
@@ -73,13 +73,13 @@ export default defineComponent({
   },
   methods: {
     keyOf(row: unknown): string {
-      return this.rowKey(row as never);
+      return this.rowKey(row);
     },
     cell(row: unknown, column: StatsColumn): string | number | undefined {
-      return column.format ? column.format(row as never) : column.value(row as never);
+      return column.format ? column.format(row) : column.value(row);
     },
     linkOf(row: unknown): string | undefined {
-      return this.rowHref?.(row as never);
+      return this.rowHref?.(row);
     },
     openRow(row: unknown, event: Event): void {
       const href = this.linkOf(row);
