@@ -130,6 +130,7 @@
            (player tiles answer themselves, see saveData) -->
       <!-- A card selection or amount behind a tile (card decision, choiceMenu.ts) is visible below the tiles -->
       <PlayerInputFactory v-if="!asTabs && (maKind !== undefined || isChoice) && selectedIdx !== -1 && selectedOption.type !== 'player'" v-show="isInlineInput(selectedOption)"
+        :class="{'or-options-inline-space': worldGovernment && selectedOption.type === 'space'}"
         ref="inputfactory" :key="selectedIdx" v-bind="childInputProps(selectedIdx)" @validity="childValid = $event" />
 
       <template v-else-if="!asTabs && !isChoice && partyCards === undefined">
@@ -146,9 +147,11 @@
       </template>
 
       <!-- In a tab box (e.g. simple decision in WaitingForTabs) the button sits in the footer -->
-      <TabPanelFooterSlot v-if="!asTabs && showOwnSaveButton()">
+      <TabPanelFooterSlot v-if="!asTabs && (showOwnSaveButton() || showOwnSpaceButton())">
         <div class="wf-action or-options-save">
-          <AppButton hotkey="proceed" :title="$t(selectedOption.buttonLabel)" type="submit" size="normal" :disabled="!childValid || awaitingPlayer" @click="saveData" />
+          <!-- World Government ocean/hazard: the space is chosen on the board; this opens the enlarged one -->
+          <AppButton v-if="showOwnSpaceButton()" hotkey="proceed" :title="$t(selectedOption.title)" type="submit" size="normal" @click="enlargeSelectedSpace" />
+          <AppButton v-else hotkey="proceed" :title="$t(selectedOption.buttonLabel)" type="submit" size="normal" :disabled="!childValid || awaitingPlayer" @click="saveData" />
         </div>
       </TabPanelFooterSlot>
 
@@ -654,6 +657,18 @@ export default defineComponent({
     isInlineInput(option: PlayerInputModel): boolean {
       return INLINE_INPUT_TYPES.includes(option.type) ||
         (this.worldGovernment && option.type === 'space');
+    },
+    // World Government ocean/hazard: the selected tile acts through the board, so its button sits in the
+    // footer like the other options instead of the centered overlay of a full-tab space selection.
+    showOwnSpaceButton(): boolean {
+      return this.showsave && !this.asTabs && this.worldGovernment && this.selectedOption?.type === 'space';
+    },
+    enlargeSelectedSpace() {
+      let ref = this.$refs['inputfactory'] as {enlargeBoard: () => void} | Array<{enlargeBoard: () => void}> | undefined;
+      if (Array.isArray(ref)) {
+        ref = ref[0];
+      }
+      ref?.enlargeBoard();
     },
     showChildSaveButton(option: PlayerInputModel): boolean {
       return option.type === 'card' && !(option.max === 1 && option.min === 1);
