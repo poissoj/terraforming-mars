@@ -1,5 +1,5 @@
 import {expect} from 'chai';
-import {optionTone, tabButtonCentered, tabDisplayOrder, tabHighlighted} from '@/client/components/orOptionsShortLabels';
+import {optionTone, shortTabLabel, tabButtonCentered, tabDisplayOrder, tabHighlighted} from '@/client/components/orOptionsShortLabels';
 import {PlayerInputModel} from '@/common/models/PlayerInputModel';
 
 function option(title: string, buttonLabel: string): PlayerInputModel {
@@ -45,5 +45,11 @@ describe('orOptionsShortLabels', () => {
     expect(optionTone({type: 'or', title: {message: 'Fund an award (${0} M€)', data: []}, buttonLabel: 'Fund'} as unknown as PlayerInputModel)).eq('gold');
     expect(optionTone({type: 'projectCard', title: 'Standard projects', buttonLabel: 'Confirm'} as PlayerInputModel)).eq('gold');
     expect(optionTone({type: 'card', title: 'Sell patents', buttonLabel: 'Sell'} as PlayerInputModel)).eq('gold');
+  });
+
+  it('labels Turmoil party actions just "Turmoil"', () => {
+    expect(shortTabLabel({message: '${0} (Turmoil ${1})', data: []})).eq('Turmoil');
+    expect(shortTabLabel('Pay 10 M€ to draw 3 cards (Turmoil Scientists)')).eq('Turmoil');
+    expect(shortTabLabel('Play project card')).eq('Play cards');
   });
 });

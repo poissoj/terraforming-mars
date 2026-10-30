@@ -6,6 +6,7 @@ import {PlayerViewModel} from '@/common/models/PlayerModel';
 import {TileType} from '@/common/TileType';
 import {PreviewTile, previewTileForSpaceInput, SpaceInput, specialTileForSpaceInput} from '@/client/components/spaceTilePreview';
 import {specialTileImage, TileImage, tileImage} from '@/client/components/specialTileImage';
+import {isTurmoilActionTitle} from '@/client/components/orOptionsShortLabels';
 
 // Explanation at the top of an action tab's box (OrOptions), where otherwise there would only be a button:
 // image (tile or resource), what happens and hint lines.
@@ -56,6 +57,11 @@ function titleKey(title: string | Message): string {
 
 function optionIntro(option: PlayerInputModel): TabIntro | undefined {
   const key = titleKey(option.title);
+  // Turmoil ruling-party action: the tab is just "Turmoil" (orOptionsShortLabels.ts); show the full
+  // action text in the box instead, above the payment button.
+  if (isTurmoilActionTitle(option.title)) {
+    return {};
+  }
   const intro = INTROS[key];
   if (intro !== undefined) {
     return intro;
