@@ -107,10 +107,14 @@ export default defineComponent({
       const canSave = this.typedRefs.childInput.canSave;
       return canSave ? canSave() : true;
     },
+    // Space selections only: open the enlarged board (SelectSpace.enlargeBoard)
+    enlargeBoard() {
+      this.typedRefs.childInput.enlargeBoard?.();
+    },
   },
   computed: {
-    typedRefs(): {childInput: {saveData: () => void, canSave?: () => boolean}} {
-      return this.$refs as unknown as {childInput: {saveData: () => void, canSave?: () => boolean}};
+    typedRefs(): {childInput: {saveData: () => void, canSave?: () => boolean, enlargeBoard?: () => void}} {
+      return this.$refs as unknown as {childInput: {saveData: () => void, canSave?: () => boolean, enlargeBoard?: () => void}};
     },
     resolvedComponent(): Component {
       const input = this.playerinput;
