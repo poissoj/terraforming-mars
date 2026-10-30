@@ -384,7 +384,7 @@ describe('OrOptions', () => {
     expect(component.findComponent({name: 'AppButton'}).find('span').text()).to.eq('Sell');
   });
 
-  it('shows World Government terraforming as parameter tiles, not action tabs', () => {
+  it('shows World Government terraforming as parameter tiles, not action tabs', async () => {
     const component = mount(OrOptions, {
       ...globalConfig,
       global: {...globalConfig.global, components: {'PlayerInputFactory': PlayerInputFactory}},
@@ -418,5 +418,11 @@ describe('OrOptions', () => {
     expect(component.text()).contains('-10 °C');
     expect(component.text()).contains('4 %');
     expect(component.text()).contains('3/9');
+
+    // Ocean: the action button belongs to the footer and opens the enlarged board, instead of
+    // overlaying the tiles from the center of the panel.
+    await component.findAll('.choice-option input')[2].setValue(true);
+    expect(component.find('.or-options-inline-space').exists()).is.true;
+    expect(component.findComponent({name: 'AppButton'}).text()).eq('Add an ocean');
   });
 });
