@@ -9,6 +9,7 @@ const SHORT_LABELS: Readonly<Record<string, string>> = {
   'Play project card': 'Play cards',
   'Perform an action from a played card': 'Actions',
   'Standard projects': 'Standard',
+  'Select action for World Government Terraforming': 'World Government',
   'Pass for this generation': 'End generation',
   'End Turn': 'Pass on',
   'Sell patents': 'Sell',

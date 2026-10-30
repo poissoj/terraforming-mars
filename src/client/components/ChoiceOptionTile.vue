@@ -13,7 +13,12 @@
     <!-- Icons in title order like on the card: what is paid, the red action arrow, what is gained
          (CO2 bacteria: −2 microbes ➜ +2 °C; Electro Catapult: −1 plant ➜ +7 M€), so options with the
          same result can be told apart at a glance -->
-    <span v-if="hasIcon" class="choice-option-icons">
+    <span v-if="globalParameter !== undefined" class="choice-option-icons">
+      <span class="choice-option-item">
+        <i class="choice-option-icon choice-option-parameter-icon" :style="{backgroundImage: 'url(' + globalParameter.icon + ')'}"></i>
+      </span>
+    </span>
+    <span v-else-if="hasIcon" class="choice-option-icons">
       <template v-for="(group, groupIndex) in iconGroups" :key="groupIndex">
         <i v-if="groupIndex > 0" class="choice-option-arrow" aria-hidden="true"></i>
         <span v-for="(item, itemIndex) in group" :key="itemIndex" class="choice-option-item">
@@ -25,8 +30,14 @@
       </template>
     </span>
     <span>{{ $t(title) }}</span>
+    <!-- Global parameter step (World Government terraforming): current value → value after the step -->
+    <div v-if="globalParameter?.before !== undefined" class="choice-option-value choice-option-parameter-value">
+      <span>{{ globalParameter.before }}</span>
+      <span class="choice-option-arrow"></span>
+      <span class="choice-option-after choice-option-after--gain">{{ globalParameter.after }}</span>
+    </div>
     <!-- Own values of every affected resource: stock and production, the changed one before → after -->
-    <div v-if="cardCount !== undefined || changes.length > 0" class="choice-option-value">
+    <div v-if="globalParameter === undefined && (cardCount !== undefined || changes.length > 0)" class="choice-option-value">
       <!-- Same table as for standard resources: icon | on card | victory points of the card, so a
            resource on a scoring card (Fish) reads as at least as valuable as a plant next to it -->
       <div v-if="cardCount !== undefined" :class="['choice-option-table', {'choice-option-table--single': cardPoints === undefined}]">
@@ -66,16 +77,20 @@ import {computed} from 'vue';
 import {Message} from '@/common/logs/Message';
 import {CardName} from '@/common/cards/CardName';
 import {PublicPlayerModel} from '@/common/models/PlayerModel';
+import {GameModel} from '@/common/models/GameModel';
 import {playerEffects, resourceChanges} from '@/client/components/selectPlayerResource';
 import {cardResourceCount, cardResourceEffect} from '@/client/components/cardResourceEffect';
 import {cardResourceCSS} from '@/client/components/common/cardResources';
 import {resultGains} from '@/client/components/choiceResultGains';
 import {cardResourcePoints} from '@/client/components/cardResourcePoints';
+import {worldGovernmentOption} from '@/client/components/worldGovernment';
 
 const props = defineProps<{
   title: string | Message;
   // Player whose amounts the tile shows (one's own); without a player only icon and text
   player?: PublicPlayerModel;
+  // Game state for a World Government terraforming tile (current global-parameter values)
+  game?: GameModel;
   // Card that triggers the decision: "this card" in the option title refers to it
   sourceCard?: CardName;
   selected: boolean;
@@ -95,6 +110,8 @@ const cardIconClass = computed(() => cardEffect.value === undefined ? '' : cardR
 // carries the cost, e.g. "Remove 2 microbes to gain 3 plants" still shows the plants
 const effects = computed(() => playerEffects(props.title));
 const changes = computed(() => props.player === undefined ? [] : resourceChanges(props.player, effects.value));
+// World Government option (only when OrOptions passes the game): parameter icon and value before → after
+const globalParameter = computed(() => props.game === undefined ? undefined : worldGovernmentOption(props.title, props.game));
 
 // One icon with its signed amount ("−2", "+7", "+2 °C"); empty amount if the title gives none
 type IconItem = {
@@ -140,7 +157,7 @@ const iconGroups = computed(() => {
   // Only a loss (e.g. "Decrease energy production") is not a cost: one group
   return [cost, rest].filter((group) => group.length > 0);
 });
-const hasIcon = computed(() => iconGroups.value.length > 0);
+const hasIcon = computed(() => globalParameter.value !== undefined || iconGroups.value.length > 0);
 
 // Production with sign as in the player bars (+2, 0, -1)
 function signed(value: number): string {

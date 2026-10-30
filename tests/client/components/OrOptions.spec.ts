@@ -8,6 +8,7 @@ import PlayerInputFactory from '@/client/components/PlayerInputFactory.vue';
 import {PlayerViewModel} from '@/common/models/PlayerModel';
 import {PlayerInputModel, SelectCardModel} from '@/common/models/PlayerInputModel';
 import {asComplete} from './utils/models';
+import {BoardName} from '@/common/boards/BoardName';
 
 describe('OrOptions', () => {
   it('saves the options ignoring hidden', async () => {
@@ -381,5 +382,41 @@ describe('OrOptions', () => {
     });
     // Without a selection no count ("Sell", not "Sell 0"); the count appears once cards are chosen
     expect(component.findComponent({name: 'AppButton'}).find('span').text()).to.eq('Sell');
+  });
+
+  it('shows World Government terraforming as parameter tiles, not action tabs', () => {
+    const component = mount(OrOptions, {
+      ...globalConfig,
+      global: {...globalConfig.global, components: {'PlayerInputFactory': PlayerInputFactory}},
+      props: {
+        playerView: asComplete<PlayerViewModel>({
+          game: {
+            temperature: -10,
+            oxygenLevel: 4,
+            oceans: 3,
+            venusScaleLevel: 18,
+            gameOptions: {boardName: BoardName.THARSIS},
+          },
+        }),
+        playerinput: {
+          type: 'or',
+          title: 'Select action for World Government Terraforming',
+          buttonLabel: 'Confirm',
+          options: [
+            {type: 'option', title: 'Increase temperature', buttonLabel: 'Increase'},
+            {type: 'option', title: 'Increase oxygen', buttonLabel: 'Increase'},
+            {type: 'space', title: 'Add an ocean', buttonLabel: 'Add', spaces: []},
+          ],
+        },
+        onsave: () => {},
+        showsave: true,
+        showtitle: true,
+      },
+    });
+    expect(component.find('.or-tabs').exists()).is.false;
+    expect(component.findAll('.choice-option')).has.length(3);
+    expect(component.text()).contains('-10 °C');
+    expect(component.text()).contains('4 %');
+    expect(component.text()).contains('3/9');
   });
 });
