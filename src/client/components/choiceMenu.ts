@@ -1,6 +1,7 @@
 import {OrOptionsModel, PlayerInputModel} from '@/common/models/PlayerInputModel';
 import {isEndTab} from '@/client/components/orOptionsShortLabels';
 import {inputSourceCard} from '@/client/components/inputSourceCard';
+import {isWorldGovernmentTerraforming} from '@/client/components/worldGovernment';
 
 // Simple decision (e.g. Olympus Conference: "add resource" or "remove"): only plain options
 // without their own input, plus at most one player selection (e.g. Comet for Venus: "select player" or "remove no M€").
@@ -16,13 +17,17 @@ export const INLINE_INPUT_TYPES: ReadonlyArray<PlayerInputModel['type']> = ['car
 // appears below the tiles once its tile is chosen – no tab bar for a card's options.
 export function isChoiceMenu(input: PlayerInputModel): input is OrOptionsModel {
   const fromCard = inputSourceCard(input) !== undefined;
+  // World Government terraforming is one decision over global parameters; its ocean and Ares-hazard
+  // options are space selections, shown below the tiles once their tile is chosen.
+  const worldGovernment = isWorldGovernmentTerraforming(input);
   return input.type === 'or' &&
     input.options.length > 0 &&
     input.options.filter((option) => option.type === 'player').length <= 1 &&
     input.options.every((option) =>
       (option.type === 'option' && !isEndTab(option.title)) ||
       option.type === 'player' ||
-      (fromCard && INLINE_INPUT_TYPES.includes(option.type)));
+      (fromCard && INLINE_INPUT_TYPES.includes(option.type)) ||
+      (worldGovernment && option.type === 'space'));
 }
 
 // Input that represents a decision outwardly (question, tab label, color in WaitingForTabs):

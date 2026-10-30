@@ -9,6 +9,7 @@ import {spaceValue} from './spaceValue';
 import {SpaceId} from '../../common/Types';
 import {SelectOption} from '../inputs/SelectOption';
 import {worldGovernmentRivalPenalty} from './worldGovernmentRival';
+import {WORLD_GOVERNMENT_TERRAFORMING_TITLE} from '../../common/inputs/WorldGovernmentTerraforming';
 
 // World Government terraforming (solar phase, played with Venus Next): the first player raises one global
 // parameter for free. The AI took the first option (temperature) every time. Strategy guides: raise Venus to
@@ -16,7 +17,7 @@ import {worldGovernmentRivalPenalty} from './worldGovernmentRival';
 // that unlocks own hand cards; never hand the rival a bonus step. Each option is tried on a copy of the
 // game and valued like a move (relativeValue, with fresh hand values for unlocked requirements).
 
-export const WORLD_GOVERNMENT_TITLE = 'Select action for World Government Terraforming';
+export const WORLD_GOVERNMENT_TITLE = WORLD_GOVERNMENT_TERRAFORMING_TITLE;
 
 function oceanSpace(input: SelectSpace, player: IPlayer): SpaceId | undefined {
   let best: {id: SpaceId, value: number} | undefined;
