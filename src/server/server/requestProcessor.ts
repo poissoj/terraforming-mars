@@ -215,6 +215,13 @@ function getHandler(pathname: string): IHandler | undefined {
   if (pathname === LOBBY_CREATE_PATH || pathname === LOBBY_CREATE_PATH + '/') {
     return LobbySubPage.CREATE;
   }
+  // Hashed Vite entry (assets/index.html points at it)
+  if (/^main-[A-Za-z0-9_-]+\.js$/.test(pathname)) {
+    return ServeAsset.INSTANCE;
+  }
+  if (/^client-[A-Za-z0-9_-]+\.css$/.test(pathname)) {
+    return ServeAsset.INSTANCE;
+  }
   return undefined;
 }
 
