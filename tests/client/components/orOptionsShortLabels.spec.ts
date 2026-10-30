@@ -52,4 +52,8 @@ describe('orOptionsShortLabels', () => {
     expect(shortTabLabel('Pay 10 M€ to draw 3 cards (Turmoil Scientists)')).eq('Turmoil');
     expect(shortTabLabel('Play project card')).eq('Play cards');
   });
+
+  it('labels the World Government input "World Government"', () => {
+    expect(shortTabLabel('Select action for World Government Terraforming')).eq('World Government');
+  });
 });
