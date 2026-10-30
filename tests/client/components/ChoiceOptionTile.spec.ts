@@ -7,6 +7,8 @@ import {CardModel} from '@/common/models/CardModel';
 import {CardName} from '@/common/cards/CardName';
 import {Message} from '@/common/logs/Message';
 import {LogMessageDataType} from '@/common/logs/LogMessageDataType';
+import {BoardName} from '@/common/boards/BoardName';
+import {GameModel} from '@/common/models/GameModel';
 
 describe('ChoiceOptionTile', () => {
   const player = {name: 'alpha', color: 'blue', steel: 2, steelProduction: 1} as PublicPlayerModel;
@@ -60,6 +62,19 @@ describe('ChoiceOptionTile', () => {
     expect(amounts).deep.eq(['−2', '+2 °C']);
     expect(wrapper.find('.choice-option-arrow').exists()).is.true;
     expect(wrapper.find('.choice-option-gain--temperature').exists()).is.true;
+  });
+
+  it('shows a World Government parameter with its current and next value', () => {
+    const game = {
+      temperature: -10,
+      gameOptions: {boardName: BoardName.THARSIS},
+    } as unknown as GameModel;
+    const wrapper = mount(ChoiceOptionTile, {
+      ...globalConfig,
+      props: {title: 'Increase temperature', game, selected: false, groupName: 'g'},
+    });
+    expect(wrapper.find('.choice-option-parameter-icon').exists()).is.true;
+    expect(wrapper.find('.choice-option-parameter-value').text().replace(/\s+/g, ' ')).eq('-10 °C-8 °C');
   });
 
   it('stays plain text without a resource', () => {

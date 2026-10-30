@@ -119,6 +119,7 @@
           <ChoiceOptionTile v-else
             :title="option.title"
             :player="playerView.thisPlayer"
+            :game="worldGovernment ? playerView.game : undefined"
             :sourceCard="decisionCard"
             :selected="selectedIdx === idx"
             :groupName="radioElementName"
@@ -189,6 +190,7 @@ import {OrOptionsModel, PlayerInputModel} from '@/common/models/PlayerInputModel
 import {InputResponse, OrOptionsResponse} from '@/common/inputs/InputResponse';
 import {TAB_PANEL_FOOTER, newTabPanelFooterId} from '@/client/components/tabPanelFooter';
 import {INLINE_INPUT_TYPES, isChoiceMenu} from '@/client/components/choiceMenu';
+import {isWorldGovernmentTerraforming} from '@/client/components/worldGovernment';
 import TabPanelFooterSlot from '@/client/components/TabPanelFooterSlot.vue';
 import ActionStepChips from '@/client/components/ActionStepChips.vue';
 import {actionStep} from '@/client/components/actionStep';
@@ -366,6 +368,10 @@ export default defineComponent({
     // Simple decision of plain options as tiles (choiceMenu.ts)
     isChoice(): boolean {
       return isChoiceMenu(this.playerinput);
+    },
+    // World Government terraforming: one panel of global-parameter tiles instead of action tabs
+    worldGovernment(): boolean {
+      return isWorldGovernmentTerraforming(this.playerinput);
     },
     // Milestone or award choice as image tiles (milestoneAwardChoice.ts)
     // Party choice as party cards (partyChoice.ts)
@@ -636,11 +642,18 @@ export default defineComponent({
       if (!this.showsave || option === undefined || this.showChildSaveButton(option)) {
         return false;
       }
-      return !(this.asTabs && (option.type === 'space' || this.availableCount(option) === 0));
+      // A space selection is confirmed on the board itself (SpaceConfirmPopover), also inline in the
+      // World Government panel.
+      if ((this.asTabs || this.worldGovernment) && option.type === 'space') {
+        return false;
+      }
+      return !(this.asTabs && this.availableCount(option) === 0);
     },
-    // Card decision: card selection/amount visible below the tiles (choiceMenu.ts); plain options stay invisible
+    // Card decision: card selection/amount visible below the tiles (choiceMenu.ts); plain options stay invisible.
+    // World Government: the ocean/hazard space selection appears below its tile.
     isInlineInput(option: PlayerInputModel): boolean {
-      return INLINE_INPUT_TYPES.includes(option.type);
+      return INLINE_INPUT_TYPES.includes(option.type) ||
+        (this.worldGovernment && option.type === 'space');
     },
     showChildSaveButton(option: PlayerInputModel): boolean {
       return option.type === 'card' && !(option.max === 1 && option.min === 1);

@@ -42,4 +42,15 @@ describe('choiceMenu', () => {
     expect(isChoiceMenu(or(player, player))).is.false;
     expect(choiceMenuLead(or(option('a'), option('b'))).type).eq('or');
   });
+
+  it('shows World Government terraforming as one choice panel, including its space option', () => {
+    const space = {type: 'space', title: 'Add an ocean', buttonLabel: '', spaces: []} as unknown as PlayerInputModel;
+    const menu = {
+      type: 'or',
+      title: 'Select action for World Government Terraforming',
+      buttonLabel: 'Confirm',
+      options: [option('Increase temperature'), space, option('Remove an unprotected hazard')],
+    } as unknown as PlayerInputModel;
+    expect(isChoiceMenu(menu)).is.true;
+  });
 });

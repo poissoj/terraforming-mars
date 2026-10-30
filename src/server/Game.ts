@@ -39,6 +39,7 @@ import {RemoveColonyFromGame} from './deferredActions/RemoveColonyFromGame';
 import {GainResourcesDeferred} from './deferredActions/GainResourcesDeferred';
 import {SerializedGame} from './SerializedGame';
 import {SpaceBonus} from '../common/boards/SpaceBonus';
+import {WORLD_GOVERNMENT_TERRAFORMING_TITLE} from '../common/inputs/WorldGovernmentTerraforming';
 import {TileType} from '../common/TileType';
 import {Turmoil} from './turmoil/Turmoil';
 import {AutomaGameSetup} from './automa/AutomaGameSetup';
@@ -980,7 +981,7 @@ export class Game implements IGame, Logger {
 
   public worldGovernmentTerraformingInput(player: IPlayer): OrOptions {
     const orOptions = new OrOptions()
-      .setTitle('Select action for World Government Terraforming')
+      .setTitle(WORLD_GOVERNMENT_TERRAFORMING_TITLE)
       .setButtonLabel('Confirm');
     if (this.getTemperature() < this.max.temperature) {
       orOptions.options.push(
