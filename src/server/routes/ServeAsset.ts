@@ -41,6 +41,9 @@ export class FileAPI {
 export class ServeAsset extends Handler {
   public static readonly INSTANCE: ServeAsset = new ServeAsset();
   private readonly cache = new BufferCache();
+  private mainEntryFile: string | undefined;
+  private mainCssFile: string | undefined;
+  private mainEntryLoaded = false;
 
   // Public for tests
   public constructor(private cacheAgeSeconds: string | number = process.env.ASSET_CACHE_MAX_AGE || 0,
@@ -117,6 +120,9 @@ export class ServeAsset extends Handler {
       res.setHeader('Content-Length', data.length);
       res.end(data);
     } catch (err) {
+      if ((err as {code?: string}).code === 'ENOENT') {
+        throw RouteError.notFound();
+      }
       console.log(err);
       throw RouteError.internalServerError('Cannot serve ' + path);
     }
@@ -125,13 +131,48 @@ export class ServeAsset extends Handler {
   // Page and PWA manifest carry this server's titles and name (TITLE_LONG, TITLE_SHORT, SERVER_NAME)
   private withIdentity(file: string, raw: Buffer): Buffer {
     switch (file) {
-    case 'assets/index.html':
-      return Buffer.from(withServerIdentity(raw.toString('utf8')));
+    case 'assets/index.html': {
+      let html = withServerIdentity(raw.toString('utf8'));
+      const entry = this.mainEntry();
+      if (entry !== undefined) {
+        html = html.replace('src="main.js"', `src="${entry}"`);
+      }
+      if (this.mainCssFile !== undefined) {
+        html = html.replace('href="client.css"', `href="${this.mainCssFile}"`);
+      }
+      return Buffer.from(html);
+    }
     case 'assets/pwa/manifest.webmanifest':
       return Buffer.from(withManifestIdentity(raw.toString('utf8')));
     default:
       return raw;
     }
+  }
+
+  // The Vite build emits a hashed entry file; assets/index.html keeps main.js as the development fallback.
+  private mainEntry(): string | undefined {
+    if (this.mainEntryLoaded === false) {
+      this.mainEntryLoaded = true;
+      try {
+        if (this.fileApi.existsSync('build/main-manifest.json')) {
+          const manifest = JSON.parse(this.fileApi.readFileSync('build/main-manifest.json').toString('utf8')) as
+            Record<string, {isEntry?: boolean, file?: string}>;
+          const entry = manifest['src/client/main.ts'] ?? Object.values(manifest).find((item) => item.isEntry === true);
+          if (entry !== undefined && typeof entry.file === 'string') {
+            this.mainEntryFile = entry.file;
+          }
+          const style = manifest['style.css'] ??
+            Object.values(manifest).find((item) => item.file?.endsWith('.css') === true);
+          if (style !== undefined && typeof style.file === 'string') {
+            this.mainCssFile = style.file;
+          }
+        }
+      } catch (err) {
+        // No manifest (development) or unreadable manifest: keep main.js, which Vite serves in dev.
+        console.log('Cannot read build/main-manifest.json', err);
+      }
+    }
+    return this.mainEntryFile;
   }
 
   private toMainFile(urlPath: string, encodings: Set<Encoding>): { file?: string, encoding?: Encoding } {
@@ -201,6 +242,13 @@ export class ServeAsset extends Handler {
       return {file: faviconFile(process.env.FAVICON_ICON, process.env.FAVICON_COLOR)};
 
     default:
+      // The hashed entry file emitted by Vite (named in assets/index.html at serve time).
+      if (/^main-[A-Za-z0-9_-]+\.js$/.test(urlPath)) {
+        return this.toMainFile(urlPath, encodings);
+      }
+      if (/^client-[A-Za-z0-9_-]+\.css$/.test(urlPath)) {
+        return this.toMainFile(urlPath, encodings);
+      }
       // Serve JS chunks produced by the Vite build.
       if (urlPath.startsWith('chunks/')) {
         const chunksRoot = path.resolve('./build/chunks');

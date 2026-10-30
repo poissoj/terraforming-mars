@@ -206,6 +206,13 @@ function getHandler(pathname: string): IHandler | undefined {
   if (pathname.startsWith(LOBBY_ROOM_PATH)) {
     return LobbyRoomPage.INSTANCE;
   }
+  // Hashed Vite entry (assets/index.html points at it)
+  if (/^main-[A-Za-z0-9_-]+\.js$/.test(pathname)) {
+    return ServeAsset.INSTANCE;
+  }
+  if (/^client-[A-Za-z0-9_-]+\.css$/.test(pathname)) {
+    return ServeAsset.INSTANCE;
+  }
   return undefined;
 }
 
