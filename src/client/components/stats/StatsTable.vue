@@ -27,7 +27,7 @@
 
 <script lang="ts">
 import {defineComponent, PropType} from 'vue';
-import {StatsColumn} from './statsTypes';
+import {BivariantCallback, StatsColumn} from './statsTypes';
 
 // Text columns start ascending, numbers descending – unless the column says otherwise
 function firstAscending(column: StatsColumn): boolean {
@@ -39,11 +39,11 @@ export default defineComponent({
   name: 'StatsTable',
   props: {
     columns: {type: Array as PropType<ReadonlyArray<StatsColumn>>, required: true},
-    rows: {type: Array as PropType<ReadonlyArray<any>>, required: true},
-    rowKey: {type: Function as PropType<(row: any) => string>, required: true},
+    rows: {type: Array as PropType<ReadonlyArray<unknown>>, required: true},
+    rowKey: {type: Function as PropType<BivariantCallback<unknown, string>>, required: true},
     initialSort: {type: String, required: true},
     // Target of a row click (opens in a new tab like the result links); without it rows are not clickable
-    rowHref: {type: Function as PropType<(row: any) => string | undefined>, required: false},
+    rowHref: {type: Function as PropType<BivariantCallback<unknown, string | undefined>>, required: false},
   },
   data() {
     const column = this.columns.find((candidate) => candidate.key === this.initialSort);
@@ -72,10 +72,16 @@ export default defineComponent({
     },
   },
   methods: {
-    linkOf(row: any): string | undefined {
+    keyOf(row: unknown): string {
+      return this.rowKey(row);
+    },
+    cell(row: unknown, column: StatsColumn): string | number | undefined {
+      return column.format ? column.format(row) : column.value(row);
+    },
+    linkOf(row: unknown): string | undefined {
       return this.rowHref?.(row);
     },
-    openRow(row: any, event: Event): void {
+    openRow(row: unknown, event: Event): void {
       const href = this.linkOf(row);
       const target = event.target as HTMLElement | null;
       // Own links (board chip, result button) already did their job
