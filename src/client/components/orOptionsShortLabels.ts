@@ -133,9 +133,20 @@ export function titleKey(title: string | Message): string {
   return typeof title === 'string' ? title : title.message;
 }
 
+// Turmoil ruling-party action: the tab is just "Turmoil"; the full action text belongs in the box
+// (tabIntro.ts returns an intro for it, so TabIntroBlock shows the title above the button).
+const TURMOIL_ACTION = /\(Turmoil [^)]+\)$/;
+
+export function isTurmoilActionTitle(title: string | Message): boolean {
+  return TURMOIL_ACTION.test(titleKey(title));
+}
+
 // Always returns a copy: translateMessage() (i18n.ts) overwrites message.message in the passed object,
 // otherwise the original would be translated and the lookup by English key would find nothing
 export function shortTabLabel(title: string | Message): string | Message {
+  if (isTurmoilActionTitle(title)) {
+    return 'Turmoil';
+  }
   if (typeof title === 'string') {
     return SHORT_LABELS[title] ?? title;
   }

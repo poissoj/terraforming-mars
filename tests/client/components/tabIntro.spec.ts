@@ -11,7 +11,7 @@ function playerView(temperature: number, oceans: number, heat: number): PlayerVi
   return {game: {temperature, oceans, gameOptions: {boardName: BoardName.THARSIS}}, thisPlayer: {heat}} as unknown as PlayerViewModel;
 }
 
-function optionInput(title: string): PlayerInputModel {
+function optionInput(title: PlayerInputModel['title']): PlayerInputModel {
   return {type: 'option', title, buttonLabel: ''} as unknown as PlayerInputModel;
 }
 
@@ -56,5 +56,10 @@ describe('tabIntro', () => {
     const facts = introFacts(intro, playerView(0, 4, 0));
     expect(facts).has.length(1);
     expect(typeof facts[0] === 'string' ? facts[0] : facts[0].data.map((d) => d.value)).deep.eq(['4', '9']);
+  });
+
+  it('shows the full Turmoil action title in the tab box', () => {
+    expect(tabIntro(optionInput('Pay 10 M€ to draw 3 cards (Turmoil Scientists)'))).deep.eq({});
+    expect(tabIntro(optionInput({message: '${0} (Turmoil ${1})', data: []}))).deep.eq({});
   });
 });
