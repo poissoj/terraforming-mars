@@ -154,7 +154,7 @@ export default defineComponent({
     SidebarModal,
     PlayerCube,
     // Load help only on demand (own chunk like the help page in App.vue)
-    HelpOverlay: defineAsyncComponent(() => import(/* webpackChunkName: "help" */ '@/client/components/helpOverlay/HelpOverlay.vue')),
+    HelpOverlay: defineAsyncComponent(() => import('@/client/components/helpOverlay/HelpOverlay.vue')),
   },
   data() {
     return {

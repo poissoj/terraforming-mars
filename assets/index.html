@@ -2,6 +2,7 @@
 <html>
     <head>
         <link rel="stylesheet" type="text/css" media="all" href="styles.css" />
+        <link rel="stylesheet" type="text/css" media="all" href="client.css" />
         <!-- Request fonts early instead of after styles.css is parsed (otherwise Chrome warns "Slow network") -->
         <link rel="preload" href="assets/fonts/prototype/prototype.woff2" as="font" type="font/woff2" crossorigin />
         <link rel="preload" href="assets/fonts/ubuntu/ubuntu-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
@@ -18,7 +19,6 @@
     </head>
     <body id="ts-preferences-target">
         <div id="app"></div>
-        <script src="vendors.js"></script>
-        <script src="main.js"></script>
+        <script type="module" src="main.js"></script>
     </body>
 </html>
