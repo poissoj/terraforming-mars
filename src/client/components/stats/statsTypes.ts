@@ -2,12 +2,14 @@
 // (the bundler only knows the default export there).
 
 /** A table column: value returns the sort value, format the display (without slot). Cells with links/bars come via slot. */
-export type StatsColumn = {
+// Row is opaque here: the table handles lists of unrelated entity types. Individual column factories
+// annotate their own row type, which is assignable to this callback (never is the bottom type).
+export type StatsColumn<Row = never> = {
   key: string;
   /** English, gets translated. */
   label: string;
-  value: (row: any) => number | string | undefined;
-  format?: (row: any) => string;
+  value: (row: Row) => number | string | undefined;
+  format?: (row: Row) => string;
   /** Text left-aligned and sorted ascending; numbers right-aligned and descending. */
   text?: boolean;
   /** Direction of the first click when it differs from the default above (e.g. a left-aligned date, newest first). */

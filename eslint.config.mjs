@@ -75,6 +75,7 @@ const vueEssentialRules = vuePlugin.configs['flat/essential'].reduce(
 // TypeScript and Vue rules
 const pluginRules = {
   'no-throw-literal': 'error',
+  '@typescript-eslint/no-explicit-any': 'error',
   '@typescript-eslint/prefer-for-of': 'error',
   '@typescript-eslint/no-non-null-assertion': 'error',
   ...vueEssentialRules,

@@ -14,10 +14,10 @@
       </thead>
       <tbody>
         <!-- With rowHref the whole row opens its link; links and buttons inside keep their own target -->
-        <tr v-for="row in sortedRows" :key="rowKey(row)" :class="{'stats-table-row--link': linkOf(row) !== undefined}"
+        <tr v-for="row in sortedRows" :key="keyOf(row)" :class="{'stats-table-row--link': linkOf(row) !== undefined}"
           :tabindex="linkOf(row) !== undefined ? 0 : undefined" @click="openRow(row, $event)" @keydown.enter="openRow(row, $event)">
           <td v-for="column in columns" :key="column.key" :class="{'stats-table-text': column.text}">
-            <slot :name="column.key" :row="row" :rows="sortedRows">{{ column.format ? column.format(row) : column.value(row) }}</slot>
+            <slot :name="column.key" :row="row" :rows="sortedRows">{{ cell(row, column) }}</slot>
           </td>
         </tr>
       </tbody>
@@ -39,11 +39,11 @@ export default defineComponent({
   name: 'StatsTable',
   props: {
     columns: {type: Array as PropType<ReadonlyArray<StatsColumn>>, required: true},
-    rows: {type: Array as PropType<ReadonlyArray<any>>, required: true},
-    rowKey: {type: Function as PropType<(row: any) => string>, required: true},
+    rows: {type: Array as PropType<ReadonlyArray<unknown>>, required: true},
+    rowKey: {type: Function as PropType<(row: never) => string>, required: true},
     initialSort: {type: String, required: true},
     // Target of a row click (opens in a new tab like the result links); without it rows are not clickable
-    rowHref: {type: Function as PropType<(row: any) => string | undefined>, required: false},
+    rowHref: {type: Function as PropType<(row: never) => string | undefined>, required: false},
   },
   data() {
     const column = this.columns.find((candidate) => candidate.key === this.initialSort);
@@ -53,15 +53,15 @@ export default defineComponent({
     };
   },
   computed: {
-    sortedRows(): Array<any> {
+    sortedRows(): Array<unknown> {
       const column = this.columns.find((candidate) => candidate.key === this.sortKey);
       if (column === undefined) {
         return [...this.rows];
       }
       const direction = this.ascending ? 1 : -1;
       return [...this.rows].sort((first, second) => {
-        const left = column.value(first);
-        const right = column.value(second);
+        const left = column.value(first as never);
+        const right = column.value(second as never);
         // Unknown values always at the end, regardless of sort direction
         if (left === undefined || right === undefined) {
           return left === right ? 0 : left === undefined ? 1 : -1;
@@ -72,10 +72,16 @@ export default defineComponent({
     },
   },
   methods: {
-    linkOf(row: any): string | undefined {
-      return this.rowHref?.(row);
+    keyOf(row: unknown): string {
+      return this.rowKey(row as never);
     },
-    openRow(row: any, event: Event): void {
+    cell(row: unknown, column: StatsColumn): string | number | undefined {
+      return column.format ? column.format(row as never) : column.value(row as never);
+    },
+    linkOf(row: unknown): string | undefined {
+      return this.rowHref?.(row as never);
+    },
+    openRow(row: unknown, event: Event): void {
       const href = this.linkOf(row);
       const target = event.target as HTMLElement | null;
       // Own links (board chip, result button) already did their job

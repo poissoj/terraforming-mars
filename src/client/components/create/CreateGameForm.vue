@@ -437,6 +437,7 @@ import {cardPoolChanged, expansionOptionsChanged, milestonesChanged} from '@/cli
 import {ColumnCount, currentColumnCount, placementOf, SettingsCard, watchColumnCount} from '@/client/components/create/createGameColumns';
 import {translateText, translateTextWithParams} from '@/client/directives/i18n';
 import {describeFailure, failureFromResponse, failureOf, fetchOrFail, RequestFailedError} from '@/client/utils/requestFailure';
+import {SimpleGameModel} from '@/common/models/SimpleGameModel';
 import {AI_SUPPORTED_EXPANSIONS, aiUnsupportedReasons} from '@/common/ai/aiSupport';
 import ColoniesFilter from '@/client/components/create/ColoniesFilter.vue';
 import {ColonyName} from '@/common/colonies/ColonyName';
@@ -1446,7 +1447,7 @@ export default defineComponent({
       if (this.rememberSettings) {
         createGameSettingsStorage.save(newGameConfig);
       }
-      const onSuccess = (json: any) => {
+      const onSuccess = (json: SimpleGameModel) => {
         if (json.players.length === 1) {
           window.location.href = 'player?id=' + json.players[0].id;
           return;

@@ -39,12 +39,13 @@ export namespace Units {
   /**
    * Returns true when all six units fields exist in `arg` and each represents a valid number.
    */
-  export function isUnits(arg: any): arg is Units {
-    if (typeof arg !== 'object') {
+  export function isUnits(arg: unknown): arg is Units {
+    if (typeof arg !== 'object' || arg === null) {
       return false;
     }
+    const record = arg as Record<string, unknown>;
     return keys.every((key) =>
-      typeof arg[key] === 'number' && !isNaN(arg[key]));
+      typeof record[key] === 'number' && !isNaN(record[key]));
   }
 
   /**

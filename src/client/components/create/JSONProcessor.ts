@@ -140,7 +140,7 @@ export class JSONProcessor {
       }
       if (k in this.model) {
         // This is safe because of the in check, above.
-        (this.model as any)[k] = json[k];
+        (this.model as unknown as Record<string, unknown>)[k] = json[k];
       } else {
         this.warnings.push(translateTextWithParams('Unknown property: ${0}', [k]));
       }
@@ -177,8 +177,7 @@ export class JSONProcessor {
     // Ensure colors are valid and distinct
     const colors = new Set(players.map((p) => p.color));
     for (const color of colors) {
-      // `as any` is OK here since this just validates `color`.
-      if (PLAYER_COLORS.indexOf(color as any) === -1) {
+      if (!(PLAYER_COLORS as ReadonlyArray<string>).includes(color)) {
         errors.push(translateTextWithParams('${0} is not a color', [color]));
       }
     }

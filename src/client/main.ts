@@ -9,12 +9,6 @@ import {startOauth} from '@/client/oauth';
 import {installOverlayScrollbars} from '@/client/utils/overlayScrollbars';
 const PlayerInputFactory = defineAsyncComponent(() => import('@/client/components/PlayerInputFactory.vue'));
 
-declare global {
-  interface Window {
-    _translations: { [key: string]: string } | undefined;
-  }
-}
-
 async function bootstrap() {
   const lang = getPreferences().lang;
   // Real language tag, so the browser hyphenates long words (CSS hyphens: auto) and reads text correctly

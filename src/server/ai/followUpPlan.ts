@@ -2,6 +2,7 @@ import {IPlayer} from '../IPlayer';
 import {PlayerInput} from '../PlayerInput';
 import {OrOptions} from '../inputs/OrOptions';
 import {SelectCard} from '../inputs/SelectCard';
+import {ICard} from '../cards/ICard';
 import {SelectAmount} from '../inputs/SelectAmount';
 import {InputResponse} from '../../common/inputs/InputResponse';
 import {quickResponse} from './quickResponse';
@@ -34,7 +35,7 @@ export function clearFollowUpPlans(): void {
 }
 
 /** Single-card choice inside a move (exactly one card to pick). */
-export function isSingleCardChoice(input: PlayerInput | undefined): input is SelectCard<any> {
+export function isSingleCardChoice(input: PlayerInput | undefined): input is SelectCard<ICard> {
   return input instanceof SelectCard && input.config.min === 1 && input.config.max === 1;
 }
 
