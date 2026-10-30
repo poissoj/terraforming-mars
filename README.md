@@ -84,7 +84,7 @@ English UI. Desktop at 1920 px width, mobile on a 390 px phone.
 
 ## Running locally
 
-Requirements: Git and [Node.js](https://nodejs.org/) 24 (see `.nvmrc`; 22 works too). No database server needed – games are stored in `db/game.db` (SQLite).
+Requirements: Git and [Node.js](https://nodejs.org/) 26 (see `.nvmrc`). No database server needed – games are stored in `db/game.db` (SQLite).
 
 ```bash
 git clone https://github.com/wrybit/terraforming-mars.git
