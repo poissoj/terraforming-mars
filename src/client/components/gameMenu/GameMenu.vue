@@ -157,7 +157,7 @@ const props = withDefaults(defineProps<{
 });
 
 // Help only on demand (own chunk, like in the sidebar)
-const HelpOverlay = defineAsyncComponent(() => import(/* webpackChunkName: "help" */ '@/client/components/helpOverlay/HelpOverlay.vue'));
+const HelpOverlay = defineAsyncComponent(() => import('@/client/components/helpOverlay/HelpOverlay.vue'));
 
 
 // One short word per language (locales/*/game_info.json). Own key "Setup menu", because "Setup" is already

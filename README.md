@@ -97,7 +97,7 @@ npm start
 Open <http://localhost:8080>, click **New game**, create the game and open the player links. Other devices in your network can join via `http://<your-IP>:8080`.
 
 - **Settings:** `cp .env.sample .env`, e.g. `PORT` or `LOCAL_FS_DB` (JSON files instead of SQLite). See [`.env.sample`](.env.sample).
-- **Development:** after one `npm run build`, `npm run dev` rebuilds on every change. Checks: `npm run lint`, `npm run test`.
+- **Development:** after one `npm run build`, `npm run dev` rebuilds on every change. The app is then served by Vite on <http://localhost:5173> (it proxies the API to the Node server on :8080). Checks: `npm run lint`, `npm run test`.
 - **Docker** (no Node.js needed): `docker compose up -d --build`, then <http://localhost:8080>.
 - **`npm ci` fails at `better-sqlite3`:** check the Node version; if needed install build tools (macOS `xcode-select --install`, Debian/Ubuntu `sudo apt install python3 make g++`).
 

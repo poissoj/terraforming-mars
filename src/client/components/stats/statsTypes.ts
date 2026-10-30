@@ -1,5 +1,5 @@
 // Shared shapes of the stats building blocks. In a .ts file because .ts files can't import types from .vue files
-// (Webpack only knows the default export there).
+// (the bundler only knows the default export there).
 
 /** A table column: value returns the sort value, format the display (without slot). Cells with links/bars come via slot. */
 export type StatsColumn = {

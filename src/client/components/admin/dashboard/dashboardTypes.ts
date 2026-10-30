@@ -1,4 +1,4 @@
-// In a .ts file because .ts files cannot import types from .vue files (webpack only knows the default export there)
+// In a .ts file because .ts files cannot import types from .vue files (the bundler only knows the default export there)
 
 /** One row of a dashboard card. */
 export type DashboardFact = {
