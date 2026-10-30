@@ -19,7 +19,7 @@ export class Curator implements IAward {
     }
     for (const tagString in Tag) {
       if (Object.hasOwn(Tag, tagString)) {
-        const tag: Tag = (<any>Tag)[tagString];
+        const tag = (Tag as unknown as Record<string, Tag>)[tagString];
         if (tag === Tag.EVENT || tag === Tag.WILD || tag === Tag.CLONE) {
           continue;
         }
