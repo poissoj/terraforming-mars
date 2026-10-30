@@ -34,7 +34,9 @@
   display: flex;
   flex-direction: column;
   flex: 0 0 auto;
-  width: min-content; // one card wide (cards can't wrap, texts can)
+  // One card wide at the standard size, independent of the card zoom: the zoom slider and the columns
+  // must not move while the player drags the slider.
+  width: @setup-column-width;
   min-height: 0;
   border: 1px solid @or-tabs-border;
   border-radius: @or-tabs-radius;
@@ -44,6 +46,7 @@
 // Outer width of a card: 240px plus the 4px bevel on each side (cards.less)
 @setup-card-outer-width: 248px;
 @setup-project-columns-min: 2;
+@setup-column-width: @setup-card-outer-width + (2 * @setup-column-padding-inline) + 2px; // card + body padding + border
 
 // The cards column fills the rest; with the board collapsed almost all cards fit without scrolling.
 // It stays at least two cards wide, so buying is a comparison and not a long list – if the row then
@@ -52,7 +55,7 @@
   flex: 1 1 0;
   width: auto;
   min-width: calc(
-    @setup-project-columns-min * @setup-card-outer-width * var(--setup-project-cards-zoom) * var(--setup-user-zoom, 1) +
+    @setup-project-columns-min * @setup-card-outer-width * var(--setup-project-cards-zoom) +
     (@setup-project-columns-min - 1) * @setup-card-gap +
     2 * @setup-column-padding-inline + 2px // column border
   );
@@ -111,7 +114,8 @@
 .setup-column-body {
   flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;
+  // Zoomed cards may be wider than the fixed column: scroll inside it instead of overlapping neighbours
+  overflow: auto;
   padding: @setup-column-padding;
 }
 
