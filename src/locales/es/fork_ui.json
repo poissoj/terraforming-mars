@@ -2280,5 +2280,6 @@
   "Food & drink": "Comida y bebida",
   "Objects": "Objetos",
   "Symbols": "Símbolos",
-  "Players are buying cards": "Los jugadores están comprando cartas"
+  "Players are buying cards": "Los jugadores están comprando cartas",
+  "Track +${0} before trading": "Pista +${0} antes de comerciar"
 }

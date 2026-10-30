@@ -767,4 +767,6 @@
   "This player is controlled by the AI.": "Tym graczem steruje AI.",
   "One": "Jeden",
   "Many": "Wiele"
+,
+  "Track +${0} before trading": "Tor +${0} przed handlem"
 }

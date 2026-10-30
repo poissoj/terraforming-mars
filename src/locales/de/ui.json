@@ -1736,4 +1736,6 @@
   "Player ${0}": "Spieler ${0}",
   "One": "Eins",
   "Many": "Mehrere"
+,
+  "Track +${0} before trading": "Spur +${0} vor dem Handel"
 }

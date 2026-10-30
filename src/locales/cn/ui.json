@@ -797,4 +797,7 @@
   "Close": "关闭",
   "One": "单个",
   "Many": "多个"
+,
+  "Track +${0} before trading": "贸易前轨道 +${0}",
+  "optional": "可选"
 }

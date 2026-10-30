@@ -1252,5 +1252,7 @@
   "Food & drink": "음식과 음료",
   "Objects": "사물",
   "Symbols": "기호",
-  "Players are buying cards": "플레이어들이 카드를 구매하는 중"
+  "Players are buying cards": "플레이어들이 카드를 구매하는 중",
+  "Track +${0} before trading": "교역 전 트랙 +${0}",
+  "optional": "선택 사항"
 }

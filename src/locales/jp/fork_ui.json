@@ -1374,5 +1374,7 @@
   "Food & drink": "食べ物と飲み物",
   "Objects": "物",
   "Symbols": "記号",
-  "Players are buying cards": "プレイヤーがカードを購入中"
+  "Players are buying cards": "プレイヤーがカードを購入中",
+  "Track +${0} before trading": "交易前にトラック +${0}",
+  "optional": "任意"
 }
