@@ -6,6 +6,7 @@ import {boardChip, expansionChips, optionChips, seatChips} from '@/client/compon
 import {setupOptionsFromGame} from '@/common/game/GameSetupOptions';
 import {GameOptionsModel} from '@/common/models/GameOptionsModel';
 import {RandomMAOptionType} from '@/common/ma/RandomMAOptionType';
+import {CardName} from '@/common/cards/CardName';
 
 // Options of a finished game as the server sends them; unset fields count as off
 function gameOptions(options: Partial<GameOptionsModel>): GameOptionsModel {
@@ -37,7 +38,7 @@ describe('GameSetupChips', () => {
   it('every switched-on setting and changed count becomes a chip', () => {
     const options = setupOptionsFromGame(gameOptions({
       solarPhaseOption: true, undoOption: true, showTimers: true, startingCorporations: 2, randomMA: RandomMAOptionType.LIMITED,
-      bannedCards: ['Birds' as never],
+      bannedCards: [CardName.BIRDS],
     }));
     expect(optionChips(options, () => false, 2).map((chip) => chip.label))
       .deep.eq(['Starting Corporations: 2', 'World Government Terraforming', 'Allow undo', 'Show timers', 'Random limited', 'Card pool']);
