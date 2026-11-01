@@ -1,6 +1,6 @@
 // Translates a key press into the key list of hotkeyActions.ts and checks it against an action.
-// Single keys are physical positions (KeyboardEvent.code), so a shortcut stays on the same key on QWERTZ, QWERTY or
-// AZERTY; combinations with ⌘ / Ctrl use the character like the system does (⌘Z is undo wherever Z lies).
+// Letters use the character (KeyboardEvent.key), so Q/Z work on AZERTY and QWERTZ as labelled; other single keys use
+// their physical position (KeyboardEvent.code). Combinations with ⌘ / Ctrl use the character like the system does.
 import {HotkeyKeys} from '@/client/hotkeys/hotkeyActions';
 import {combo, keysOf} from '@/client/hotkeys/hotkeyStore';
 import {codeLabel, physicalCode} from '@/client/hotkeys/hotkeyKeyLabels';
@@ -46,6 +46,10 @@ export function keysOfEvent(event: KeyboardEvent): HotkeyKeys | undefined {
     const code = codeOfEvent(event);
     const key = event.key === 'Dead' && code !== undefined ? codeLabel(code) : event.key;
     return key !== undefined ? ['Mod', key.length === 1 ? key.toUpperCase() : key] : undefined;
+  }
+  // Letters follow the key cap (AZERTY Q, QWERTZ Z, …), not the US position.
+  if (/^[a-zA-Z]$/.test(event.key)) {
+    return [event.key.toUpperCase()];
   }
   const code = codeOfEvent(event);
   return code !== undefined ? [code] : undefined;

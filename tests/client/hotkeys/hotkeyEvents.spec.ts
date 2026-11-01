@@ -14,8 +14,10 @@ describe('hotkeyEvents', () => {
     }
   });
 
-  it('reads single keys by position', () => {
-    expect(keysOfEvent(press('KeyY', 'z'))).to.deep.equal(['KeyY']);
+  it('reads letters by character and other single keys by position', () => {
+    expect(keysOfEvent(press('KeyY', 'z'))).to.deep.equal(['Z']);
+    // AZERTY: Q is on the physical KeyA position
+    expect(keysOfEvent(press('KeyA', 'q'))).to.deep.equal(['Q']);
     expect(keysOfEvent(press('Numpad1', '1'))).to.deep.equal(['Digit1']);
   });
 

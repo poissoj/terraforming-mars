@@ -2,8 +2,8 @@
 // and the default keys. Locked shortcuts are fixed (Enter, Space, Esc, digits …) and cannot be changed in the help dialog.
 
 /**
- * Keys of a shortcut: a single key is a physical position (KeyboardEvent.code, e.g. 'KeyQ', 'Slash'); a combination
- * is 'Mod' (⌘ on Mac, Ctrl elsewhere) plus a character (KeyboardEvent.key, letters uppercase), like the system does
+ * Keys of a shortcut: letters are characters (KeyboardEvent.key, e.g. 'Q'), other single keys are physical
+ * positions (KeyboardEvent.code, e.g. 'Slash'); a combination is 'Mod' (⌘ on Mac, Ctrl elsewhere) plus a character.
  */
 export type HotkeyKeys = ReadonlyArray<string>;
 
@@ -37,7 +37,7 @@ export const HOTKEY_ACTIONS: ReadonlyArray<HotkeyAction> = [
   {id: 'setup-menu', group: 'general', label: 'Setup menu', short: 'Menu', keys: ['Backquote']},
   {id: 'log-search', group: 'general', label: 'Search the log', short: 'Log', keys: ['Slash']},
   {id: 'undo', group: 'general', label: 'Undo', keys: ['Mod', 'Z']},
-  {id: 'rate-ai', group: 'general', label: 'Rate AI decision', short: 'AI', keys: ['KeyI']},
+  {id: 'rate-ai', group: 'general', label: 'Rate AI decision', short: 'AI', keys: ['I']},
   {id: 'pick', group: 'selection', label: 'Choose card / option', short: 'Choose', keys: ['1', '…', '0'], locked: true},
   {id: 'select-all', group: 'selection', label: 'Select all', short: 'All', keys: ['Mod', 'A']},
   {id: 'amount', group: 'selection', label: 'Change amount', short: 'Amount', keys: ['ArrowLeft', 'ArrowRight'], locked: true},
@@ -47,29 +47,29 @@ export const HOTKEY_ACTIONS: ReadonlyArray<HotkeyAction> = [
   {id: 'cancel', group: 'selection', label: 'Cancel / discard', detail: 'Close / no', short: 'Cancel', keys: ['Escape'], locked: true},
   {id: 'previous-tab', group: 'tabs', label: 'Previous tab', short: 'Tab', keys: ['Comma']},
   {id: 'next-tab', group: 'tabs', label: 'Next tab', short: 'Tab', keys: ['Period']},
-  {id: 'tab-hand', group: 'tabs-default', label: 'All cards', short: 'Cards', keys: ['KeyQ']},
-  {id: 'tab-actions', group: 'tabs-default', label: 'Actions', keys: ['KeyW']},
-  {id: 'tab-projects', group: 'tabs-default', label: 'Projects', keys: ['KeyE']},
-  {id: 'tab-award', group: 'tabs-default', label: 'Award', keys: ['KeyR']},
-  {id: 'tab-standard', group: 'tabs-default', label: 'Standard', keys: ['KeyT']},
-  {id: 'tab-sell', group: 'tabs-default', label: 'Sell', keys: ['KeyY']},
-  {id: 'tab-pass', group: 'tabs-turn-end', label: 'Pass on', keys: ['KeyZ'], tone: 'success'},
-  {id: 'tab-end', group: 'tabs-turn-end', label: 'End generation', short: 'End', keys: ['KeyX'], tone: 'danger'},
-  {id: 'tab-corporation', group: 'tabs-context', label: 'Corporation action', short: 'Corporation', keys: ['KeyA']},
-  {id: 'tab-milestone', group: 'tabs-context', label: 'Milestone', keys: ['KeyS']},
-  {id: 'tab-place', group: 'tabs-context', label: 'Place', keys: ['KeyD']},
-  {id: 'tab-temperature', group: 'tabs-context', label: 'Temperature', keys: ['KeyF']},
-  {id: 'tab-delegate', group: 'tabs-expansion', label: 'Delegate', keys: ['KeyG'], expansion: 'turmoil'},
-  {id: 'tab-trade', group: 'tabs-expansion', label: 'Trade', keys: ['KeyH'], expansion: 'colonies'},
+  {id: 'tab-hand', group: 'tabs-default', label: 'All cards', short: 'Cards', keys: ['Q']},
+  {id: 'tab-actions', group: 'tabs-default', label: 'Actions', keys: ['W']},
+  {id: 'tab-projects', group: 'tabs-default', label: 'Projects', keys: ['E']},
+  {id: 'tab-award', group: 'tabs-default', label: 'Award', keys: ['R']},
+  {id: 'tab-standard', group: 'tabs-default', label: 'Standard', keys: ['T']},
+  {id: 'tab-sell', group: 'tabs-default', label: 'Sell', keys: ['Y']},
+  {id: 'tab-pass', group: 'tabs-turn-end', label: 'Pass on', keys: ['Z'], tone: 'success'},
+  {id: 'tab-end', group: 'tabs-turn-end', label: 'End generation', short: 'End', keys: ['X'], tone: 'danger'},
+  {id: 'tab-corporation', group: 'tabs-context', label: 'Corporation action', short: 'Corporation', keys: ['A']},
+  {id: 'tab-milestone', group: 'tabs-context', label: 'Milestone', keys: ['S']},
+  {id: 'tab-place', group: 'tabs-context', label: 'Place', keys: ['D']},
+  {id: 'tab-temperature', group: 'tabs-context', label: 'Temperature', keys: ['F']},
+  {id: 'tab-delegate', group: 'tabs-expansion', label: 'Delegate', keys: ['G'], expansion: 'turmoil'},
+  {id: 'tab-trade', group: 'tabs-expansion', label: 'Trade', keys: ['H'], expansion: 'colonies'},
   // Board tabs above the right column, in their order on the right-hand home row; the view of Mars / Moon below
-  {id: 'board-mars', group: 'board', label: 'Mars', keys: ['KeyJ']},
-  {id: 'board-moon', group: 'board', label: 'Moon', keys: ['KeyK'], expansion: 'moon'},
-  {id: 'board-colonies', group: 'board', label: 'Colonies', keys: ['KeyL'], expansion: 'colonies'},
+  {id: 'board-mars', group: 'board', label: 'Mars', keys: ['J']},
+  {id: 'board-moon', group: 'board', label: 'Moon', keys: ['K'], expansion: 'moon'},
+  {id: 'board-colonies', group: 'board', label: 'Colonies', keys: ['L'], expansion: 'colonies'},
   {id: 'board-turmoil', group: 'board', label: 'Turmoil', keys: ['Semicolon'], expansion: 'turmoil'},
   {id: 'board-paths', group: 'board', label: 'Planets', keys: ['Quote'], expansion: 'pathfinders'},
   {id: 'board-delta', group: 'board', label: 'Delta', keys: ['Backslash'], expansion: 'deltaProject'},
-  {id: 'board-view-previous', group: 'board', label: 'Previous board view', short: 'Board view', keys: ['KeyN']},
-  {id: 'board-view-next', group: 'board', label: 'Next board view', short: 'Board view', keys: ['KeyM']},
+  {id: 'board-view-previous', group: 'board', label: 'Previous board view', short: 'Board view', keys: ['N']},
+  {id: 'board-view-next', group: 'board', label: 'Next board view', short: 'Board view', keys: ['M']},
 ];
 
 /** Shortcuts outside the game view, fixed and not listed in the help dialog */

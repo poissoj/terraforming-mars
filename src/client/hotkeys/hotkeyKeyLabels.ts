@@ -1,7 +1,7 @@
 // Which character a physical key (KeyboardEvent.code) shows on this device. Chrome and Edge tell the real keyboard
 // layout (navigator.keyboard.getKeyboardLayoutMap, also AZERTY, Nordic …); other browsers fall back to the layout
-// of the game language (hotkeyKeyboardLayouts.ts). Shortcuts are bound by position, so they work either way –
-// only the labels on the caps and the drawn keyboard come from here.
+// of the game language (hotkeyKeyboardLayouts.ts). Letters are bound by character, other keys by position, so the
+// labels on the caps and the drawn keyboard come from here.
 import {shallowRef} from 'vue';
 import {characterAt} from '@/client/hotkeys/hotkeyKeyboardLayouts';
 import {getPreferences} from '@/client/utils/PreferencesManager';

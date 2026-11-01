@@ -27,7 +27,7 @@ describe('HotkeyKeyboard', () => {
 
   it('follows changed bindings at once', async () => {
     const wrapper = mountKeyboard('en');
-    setBinding('tab-projects', ['KeyM']);
+    setBinding('tab-projects', ['M']);
     await wrapper.vm.$nextTick();
     expect(wrapper.find('[data-key="M"]').classes()).to.include('hotkey-keyboard__key--tabs-default');
   });
@@ -38,13 +38,16 @@ describe('HotkeyKeyboard', () => {
     expect(wrapper.find('[data-key="H"]').classes()).to.include('hotkey-keyboard__key--tabs-expansion');
   });
 
-  it('labels the keys with the real layout of the device (AZERTY), the shortcuts stay on their position', async () => {
+  it('labels the keys with the real layout of the device (AZERTY), and shortcuts follow the key cap', async () => {
     detectedLayout.value = new Map([['KeyQ', 'a'], ['KeyA', 'q'], ['KeyW', 'z']]);
     const wrapper = mountKeyboard('en');
     await wrapper.vm.$nextTick();
-    const allCards = wrapper.find('[data-key="Q"]');
-    expect(allCards.text()).to.include('A');
+    // Q is on KeyA, so the key cap says Q and carries the All cards shortcut.
+    const allCards = wrapper.find('[data-key="A"]');
+    expect(allCards.text()).to.include('Q');
     expect(allCards.find('.hotkey-keyboard__use').text()).to.equal('Cards');
+    // The physical KeyQ is A on AZERTY and carries the Corporation action.
+    expect(wrapper.find('[data-key="Q"] .hotkey-keyboard__use').text()).to.equal('Corporation');
   });
 
   it('has arrow up and down as two half keys', () => {
