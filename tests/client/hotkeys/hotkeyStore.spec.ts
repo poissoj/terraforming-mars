@@ -7,7 +7,7 @@ describe('hotkeyStore', () => {
   });
 
   it('finds the action of a key', () => {
-    expect(actionForKeys(['KeyE'])).to.equal('tab-projects');
+    expect(actionForKeys(['E'])).to.equal('tab-projects');
     expect(actionForKeys(['Backquote'])).to.equal('setup-menu');
     expect(actionForKeys(['Mod', 'Enter'])).to.equal('create-game');
   });
@@ -19,14 +19,20 @@ describe('hotkeyStore', () => {
 
   it('reports keys assigned twice', () => {
     expect(duplicateBindings().size).to.equal(0);
-    setBinding('tab-projects', ['KeyQ']);
+    setBinding('tab-projects', ['Q']);
     expect(Array.from(duplicateBindings()).sort()).to.deep.equal(['tab-hand', 'tab-projects']);
   });
 
-  it('binds single keys by position and combinations by character', () => {
-    expect(keysOf('tab-sell')).to.deep.equal(['KeyY']);
+  it('binds letters by character, other single keys by position and combinations by character', () => {
+    expect(keysOf('tab-sell')).to.deep.equal(['Y']);
     expect(keysOf('setup-menu')).to.deep.equal(['Backquote']);
     expect(keysOf('undo')).to.deep.equal(['Mod', 'Z']);
+  });
+
+  it('migrates letter shortcuts stored as physical codes in version 3', () => {
+    const count = importHotkeys(JSON.stringify({version: 3, hotkeys: {'tab-projects': ['KeyQ']}}));
+    expect(count).to.equal(1);
+    expect(keysOf('tab-projects')).to.deep.equal(['Q']);
   });
 
   it('exports and imports the bindings', () => {

@@ -46,12 +46,12 @@ export function drawnCharacter(key: KeyboardKey): string | undefined {
   return (key.code !== undefined ? codeLabel(key.code) : undefined) ?? key.value;
 }
 
-// Single keys match the position, combinations the character, the help its "?" (Shift character of the key)
+// Letters match the key cap, other single keys the position; combinations match the character, the help its "?" (Shift character)
 export function keyUses(key: KeyboardKey, expansions?: ReadonlyArray<string>): Array<KeyUse> {
   if (key.code === undefined) {
     return [];
   }
   const character = drawnCharacter(key);
   return allKeyUses(expansions).filter((use) => use.keys.some((value) =>
-    use.usesMod ? value === character : value === key.code || (value === '?' && key.shiftValue === '?')));
+    use.usesMod ? value === character : value === key.code || value === character || (value === '?' && key.shiftValue === '?')));
 }

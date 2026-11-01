@@ -6,8 +6,9 @@ import {safeLocalStorage} from '@/client/utils/SafeLocalStorage';
 import {FIXED_HOTKEYS, HOTKEY_ACTIONS, HotkeyKeys, findHotkeyAction} from '@/client/hotkeys/hotkeyActions';
 
 const STORAGE_KEY = 'hotkeys';
-// Version 3: single keys are positions (KeyboardEvent.code); bindings of older versions (characters) are dropped
-const EXPORT_VERSION = 3;
+// Version 4: letter shortcuts are characters; version 3 stored their physical codes and is migrated on load
+const EXPORT_VERSION = 4;
+const LEGACY_POSITION_VERSION = 3;
 
 type StoredHotkeys = {
   version: number;
@@ -42,13 +43,21 @@ function storeBinding(id: string, keys: HotkeyKeys): void {
   }
 }
 
+function migrateKeys(keys: HotkeyKeys): HotkeyKeys {
+  // Version 3 stored letters as physical codes (KeyQ); convert them to the character bindings used now.
+  if (keys.length === 1 && /^Key[A-Z]$/.test(keys[0])) {
+    return [keys[0].slice(3)];
+  }
+  return keys;
+}
+
 // Only known, editable actions are taken over; unknown ids (older or newer versions) are ignored
 function applyBindings(source: Record<string, unknown>): number {
   let count = 0;
   for (const [id, keys] of Object.entries(source)) {
     const action = findHotkeyAction(id);
     if (action !== undefined && action.locked !== true && isKeyList(keys)) {
-      storeBinding(id, keys);
+      storeBinding(id, migrateKeys(keys));
       count++;
     }
   }
@@ -62,7 +71,7 @@ export function loadHotkeys(): void {
   }
   try {
     const stored = JSON.parse(raw) as Partial<StoredHotkeys>;
-    if (stored.version === EXPORT_VERSION && stored.hotkeys !== undefined && typeof stored.hotkeys === 'object') {
+    if ((stored.version === LEGACY_POSITION_VERSION || stored.version === EXPORT_VERSION) && stored.hotkeys !== undefined && typeof stored.hotkeys === 'object') {
       applyBindings(stored.hotkeys);
     }
     if (typeof stored.showHints === 'boolean') {
@@ -146,7 +155,7 @@ export function exportHotkeys(): string {
 /** Takes over the bindings of an export; returns how many were read, throws on text that is no export */
 export function importHotkeys(text: string): number {
   const data = JSON.parse(text) as Partial<StoredHotkeys>;
-  if (data.version !== EXPORT_VERSION || data.hotkeys === undefined || typeof data.hotkeys !== 'object' || data.hotkeys === null) {
+  if ((data.version !== LEGACY_POSITION_VERSION && data.version !== EXPORT_VERSION) || data.hotkeys === undefined || typeof data.hotkeys !== 'object' || data.hotkeys === null) {
     throw new Error('No hotkeys in this file');
   }
   const count = applyBindings(data.hotkeys);
