@@ -109,11 +109,6 @@
       "count": 1
     }
   },
-  "tests/ai/standardProjectRestraint.spec.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
   "tests/ai/uselessMove.spec.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 2
