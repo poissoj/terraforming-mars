@@ -1,4 +1,5 @@
 import {shallowMount, VueWrapper, DOMWrapper} from '@vue/test-utils';
+import {ComponentPublicInstance} from 'vue';
 import {globalConfig} from '../getLocalVue';
 import {expect} from 'chai';
 import {CardName} from '@/common/cards/CardName';
@@ -9,8 +10,23 @@ import {Tag} from '@/common/cards/Tag';
 import {SpecialTags} from '@/client/cards/SpecialTags';
 import {asComplete} from '../utils/models';
 
+type TagDetail = {
+  name: Tag | SpecialTags | 'separator';
+  points: number;
+  asterisk: boolean;
+  substitution?: Tag;
+};
+
+type PlayerTagsVm = ComponentPublicInstance & {
+  tagsInOrder: Array<TagDetail>;
+};
+
 describe('PlayerTags', () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper;
+
+  function vm(): PlayerTagsVm {
+    return wrapper.vm as PlayerTagsVm;
+  }
 
   beforeEach(() => {
     const player: RecursivePartial<PublicPlayerModel> = {
@@ -151,7 +167,7 @@ describe('PlayerTags', () => {
   });
 
   it('nextToThis card sets asterisk on city-count tag', () => {
-    const cityCount = wrapper.vm.tagsInOrder.find((t: any) => t.name === SpecialTags.CITY_COUNT);
+    const cityCount = vm().tagsInOrder.find((t) => t.name === SpecialTags.CITY_COUNT)!;
     expect(cityCount.points).to.eq(0);
     expect(cityCount.asterisk).to.eq(true);
   });
@@ -159,7 +175,7 @@ describe('PlayerTags', () => {
   it('tag substitution - earth embassy', () => {
     const substitution = wrapper.find('[data-test="substitution-earth"]');
     expect(substitution.exists()).to.eq(true);
-    const earth = wrapper.vm.tagsInOrder.find((t: any) => t.name === Tag.EARTH);
+    const earth = vm().tagsInOrder.find((t) => t.name === Tag.EARTH)!;
     expect(earth.substitution).to.eq(Tag.MOON);
   });
 
@@ -168,7 +184,7 @@ describe('PlayerTags', () => {
   });
 
   it('updates when the player changes', async () => {
-    const player: PublicPlayerModel = wrapper.props('player');
+    const player = (wrapper.props() as {player: PublicPlayerModel}).player;
     await wrapper.setProps({
       player: {
         ...player,

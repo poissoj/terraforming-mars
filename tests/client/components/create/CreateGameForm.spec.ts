@@ -7,7 +7,7 @@ import {useFakeLocalStorage} from '../FakeLocalStorage';
 import {BoardName} from '@/common/boards/BoardName';
 import {DEFAULT_EXPANSIONS} from '@/common/cards/GameModule';
 import {JSONObject} from '@/common/Types';
-import {defineComponent} from 'vue';
+import {ComponentPublicInstance, defineComponent} from 'vue';
 import {NewGameConfig} from '@/common/game/NewGameConfig';
 import {CardName} from '@/common/cards/CardName';
 import {CreateGameModel} from '@/client/components/create/CreateGameModel';
@@ -16,8 +16,12 @@ import {ColonyName} from '@/common/colonies/ColonyName';
 import {RandomMAOptionType} from '@/common/ma/RandomMAOptionType';
 import {PreferencesManager} from '@/client/utils/PreferencesManager';
 
+type AlertRoot = ComponentPublicInstance & {
+  showAlert: (title: string, message: string) => void;
+};
+
 // Minimal serialized Create Game payload used by settings restore tests.
-function createNewGameConfig(overrides: JSONObject = {}):  NewGameConfig {
+function createNewGameConfig(overrides: JSONObject = {}): NewGameConfig & JSONObject {
   // Not ideal but is fine for the tests.
   const config: Partial<NewGameConfig> = {
     players: [
@@ -30,7 +34,7 @@ function createNewGameConfig(overrides: JSONObject = {}):  NewGameConfig {
     solarPhaseOption: true,
     ...overrides,
   };
-  return config as NewGameConfig;
+  return config as NewGameConfig & JSONObject;
 }
 
 /*
@@ -102,7 +106,11 @@ describe('CreateGameForm', () => {
       ...globalConfig,
     });
     const form = wrapper.findComponent(CreateGameForm);
-    (form.vm.$root as any).showAlert = (title: string, message: string) => {
+    const root = form.vm.$root;
+    if (root === null) {
+      throw new Error('CreateGameForm is not mounted');
+    }
+    (root as AlertRoot).showAlert = (title: string, message: string) => {
       alerts.push({title, message});
     };
 
@@ -144,7 +152,7 @@ describe('CreateGameForm', () => {
       ...globalConfig,
     });
 
-    expect(() => (wrapper.vm as any).applySettings(createNewGameConfig({
+    expect(() => wrapper.vm.applySettings(createNewGameConfig({
       players: [
         {name: 'Alice', color: 'red', beginner: false, handicap: 0},
         {name: 'Bob', color: 'red', beginner: false, handicap: 0},

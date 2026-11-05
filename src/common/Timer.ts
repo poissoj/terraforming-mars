@@ -78,7 +78,7 @@ export class Timer {
     timer.enabled = d.enabled ?? d.afterFirstAction ?? false;
 
     // Never move the shared timer backwards.
-    Timer.lastStoppedAt = Math.max(Timer.lastStoppedAt, d.lastStoppedAt);
+    Timer.lastStoppedAt = Math.max(Timer.lastStoppedAt, d.lastStoppedAt ?? 0);
     return timer;
   }
 

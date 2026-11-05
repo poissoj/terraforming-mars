@@ -7,7 +7,7 @@ import {PlayerViewModel, PublicPlayerModel} from '@/common/models/PlayerModel';
 import {InputResponse} from '@/common/inputs/InputResponse';
 
 describe('SelectPlayer', () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper;
   let response: InputResponse | undefined = undefined;
 
   const players: Array<Partial<PublicPlayerModel>> = [
@@ -63,22 +63,22 @@ describe('SelectPlayer', () => {
 
     const inputs = wrapper.findAll('input');
     clickInput(inputs[0]);
-    expect(wrapper.vm.$data.selectedPlayer).eq('red');
+    expect((inputs[0].element as HTMLInputElement).checked).is.true;
     clickButton();
     expect(response).deep.eq({type: 'player', player: 'red'});
 
     clickInput(inputs[1]);
-    expect(wrapper.vm.$data.selectedPlayer).eq('yellow');
+    expect((inputs[1].element as HTMLInputElement).checked).is.true;
     clickButton();
     expect(response).deep.eq({type: 'player', player: 'yellow'});
 
     clickInput(inputs[2]);
-    expect(wrapper.vm.$data.selectedPlayer).eq('green');
+    expect((inputs[2].element as HTMLInputElement).checked).is.true;
     clickButton();
     expect(response).deep.eq({type: 'player', player: 'green'});
 
     clickInput(inputs[3]);
-    expect(wrapper.vm.$data.selectedPlayer).eq('blue');
+    expect((inputs[3].element as HTMLInputElement).checked).is.true;
     clickButton();
     expect(response).deep.eq({type: 'player', player: 'blue'});
   });

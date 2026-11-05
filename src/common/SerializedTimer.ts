@@ -5,8 +5,10 @@ export type SerializedTimer = {
   sumElapsed: number;
   startedAt: number;
   running: boolean;
-  enabled: boolean;
+  // Optional for games saved before the timer was enabled by default.
+  enabled?: boolean;
   // TODO(kberg): Remove by 2027-01-01
   afterFirstAction?: boolean;
-  lastStoppedAt: number;
+  // Optional for older saves.
+  lastStoppedAt?: number;
 }

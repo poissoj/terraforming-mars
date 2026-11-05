@@ -241,5 +241,6 @@ function runTest(playerInput: Partial<PlayerInputModel>) {
     },
   });
   expect(component).not.is.undefined;
-  expect((component.vm as any).$refs.childInput.saveData).not.is.undefined;
+  const refs = component.vm.$refs as {childInput: {saveData: () => void}};
+  expect(refs.childInput.saveData).not.is.undefined;
 }

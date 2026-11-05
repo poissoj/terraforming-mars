@@ -31,7 +31,9 @@ describe('SelectResource', () => {
 
   it('Not a resource', () => {
     const selectResource = new SelectResource('').andThen(cb);
-    expect(() => selectResource.process({type: 'resource', resource: 'eggs' as any})).to.throw(/Not a valid unit/);
+    const response = {type: 'resource' as const, resource: 'plants' as const};
+    Reflect.set(response, 'resource', 'eggs');
+    expect(() => selectResource.process(response)).to.throw(/Not a valid unit/);
     expect(selected).is.undefined;
   });
 

@@ -3,9 +3,15 @@ import {globalConfig} from '../getLocalVue';
 import {expect} from 'chai';
 import PointsPerTag from '@/client/components/overview/PointsPerTag.vue';
 
+type Points = {
+  points: number;
+  halfPoints: number;
+  asterisk?: boolean;
+};
+
 describe('PointsPerTag', () => {
-  function doTest(points: any, expected: string) {
-    const wrapper: VueWrapper<any> = shallowMount(PointsPerTag, {
+  function doTest(points: Points, expected: string) {
+    const wrapper: VueWrapper = shallowMount(PointsPerTag, {
       ...globalConfig,
       parentComponent: {
         methods: {

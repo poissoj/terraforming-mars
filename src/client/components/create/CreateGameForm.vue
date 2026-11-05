@@ -1044,8 +1044,8 @@ export default defineComponent({
         }
       });
 
-      players.map((player) => {
-        player.first = (this.firstIndex === player.index);
+      players.map((player, index) => {
+        player.first = (this.firstIndex === index + 1);
         return player;
       });
 
