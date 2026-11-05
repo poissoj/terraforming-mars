@@ -140,7 +140,7 @@ export const BOARDS_WITHOUT_VOLCANIC_SPACES: ReadonlyArray<BoardName> = [
  * exported for tests
  */
 export function getCandidates(gameOptions: GameOptions): [Array<MilestoneName>, Array<AwardName>] {
-  function include<T extends string>(name: T, manifest: MAManifest<T, any>): boolean {
+  function include<T extends string>(name: T, manifest: MAManifest<T, unknown>): boolean {
     // Never include deprecated MAs in random candidates.  They generally have "more official" versions that will be
     // considered for inclusion.
     if (manifest.all[name].deprecated) {

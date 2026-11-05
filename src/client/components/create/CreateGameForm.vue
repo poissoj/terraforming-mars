@@ -1044,7 +1044,7 @@ export default defineComponent({
         }
       });
 
-      players.map((player: any) => {
+      players.map((player) => {
         player.first = (this.firstIndex === player.index);
         return player;
       });

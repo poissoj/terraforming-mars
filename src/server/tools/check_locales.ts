@@ -30,7 +30,7 @@ if (args[0] === '--locales') {
 for (const [sourceString, translations] of Object.entries(raw_translations)) {
   const missingLocales: Array<string> = [];
   for (const localeName of localesToWarn) {
-    const trans: string = (translations as any)[localeName];
+    const trans: string | undefined = translations[localeName];
     if (!trans) {
       missingLocales.push(localeName);
     }
