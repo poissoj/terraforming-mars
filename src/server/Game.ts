@@ -28,7 +28,7 @@ import {PlayerId, GameId, SpectatorId, SpaceId} from '../common/Types';
 import {PlayerInput} from './PlayerInput';
 import {CardResource} from '../common/CardResource';
 import {Resource} from '../common/Resource';
-import {AndThen, DeferredAction, SimpleDeferredAction} from './deferredActions/DeferredAction';
+import {AndThen, DeferredAction, DeferredActionView, SimpleDeferredAction} from './deferredActions/DeferredAction';
 import {Priority} from './deferredActions/Priority';
 import {DeferredActionsQueue} from './deferredActions/DeferredActionsQueue';
 import {SelectPaymentDeferred} from './deferredActions/SelectPaymentDeferred';
@@ -568,11 +568,15 @@ export class Game implements IGame, Logger {
   }
 
   public defer<T>(action: DeferredAction<T>, priority?: Priority): AndThen<T> {
+    this.deferWithoutCallback(action, priority);
+    return action;
+  }
+
+  public deferWithoutCallback(action: DeferredActionView, priority?: Priority): void {
     if (priority !== undefined) {
       action.priority = priority;
     }
     this.deferredActions.push(action);
-    return action;
   }
 
   /**

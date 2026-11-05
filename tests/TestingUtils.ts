@@ -247,7 +247,7 @@ export function churn(pi: PlayerInput | (() => PlayerInput | undefined) | undefi
  * Get the PlayerInput a player is waiting for. Expect it to be of type `klass` and call `f` with it.
  * Afterwards, call any additional callback.
  */
-export function doWait<T>(player: TestPlayer, klass: new (...args: never[]) => T, f: (waitingFor: T) => void) {
+export function doWait<T, A extends unknown[]>(player: TestPlayer, klass: new (...args: A) => T, f: (waitingFor: T) => void) {
   const [waitingFor, cb] = player.popWaitingFor2();
   f(cast(waitingFor, klass));
   cb?.();

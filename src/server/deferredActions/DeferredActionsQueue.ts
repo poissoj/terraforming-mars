@@ -1,31 +1,27 @@
-import {IDeferredAction} from './DeferredAction';
+import {DeferredActionView} from './DeferredAction';
 import {GiveColonyBonus} from './GiveColonyBonus';
 import {IPlayer} from '../IPlayer';
 import {PlayerId} from '../../common/Types';
 import {PriorityQueue} from './PriorityQueue';
 
-// The queue only runs actions and reads their priority/player: it never calls andThen, whose
-// callback type differs from action to action.
-type QueuedDeferredAction = Pick<IDeferredAction<never>, 'player' | 'priority' | 'execute'>;
-
 export class DeferredActionsQueue {
-  private queue = new PriorityQueue<QueuedDeferredAction, PlayerId>();
+  private queue = new PriorityQueue<DeferredActionView, PlayerId>();
 
   get length(): number {
     return this.queue.length;
   }
 
-  public push(action: QueuedDeferredAction): void {
+  public push(action: DeferredActionView): void {
     this.queue.push(action, action.priority, action.player.id);
   }
 
   // Public for tests
-  public peek(): QueuedDeferredAction | undefined {
+  public peek(): DeferredActionView | undefined {
     return this.queue.peek();
   }
 
   // Public for tests
-  public pop(): QueuedDeferredAction | undefined {
+  public pop(): DeferredActionView | undefined {
     return this.queue.pop();
   }
 
@@ -62,7 +58,7 @@ export class DeferredActionsQueue {
    * Runs `action`. Returns true when it finished immediately, in which case `cb` is not called.
    * Otherwise `cb` is called once the action finishes.
    */
-  private runInline(action: QueuedDeferredAction, cb: () => void): boolean {
+  private runInline(action: DeferredActionView, cb: () => void): boolean {
     // Special hook for trade bonus deferred actions
     // So that they happen for all players at the same time
     if (action instanceof GiveColonyBonus) {

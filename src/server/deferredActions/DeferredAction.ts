@@ -6,11 +6,14 @@ export interface AndThen<T> {
   andThen(cb: (param: T) => void): this;
 }
 
-export interface IDeferredAction <T = undefined> extends AndThen<T> {
+/** What the deferred-action queue needs: the callback type is irrelevant there. */
+export interface DeferredActionView {
   player: IPlayer;
   priority: Priority;
   execute(): PlayerInput | undefined;
 }
+
+export interface IDeferredAction <T = undefined> extends DeferredActionView, AndThen<T> {}
 
 export abstract class DeferredAction<T = undefined> implements IDeferredAction<T> {
   constructor(
