@@ -169,11 +169,6 @@
       "count": 2
     }
   },
-  "tests/client/components/create/ModuleItemFilter.spec.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 30
-    }
-  },
   "tests/client/components/logpanel/LogPanel.spec.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 1
