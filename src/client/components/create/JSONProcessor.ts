@@ -139,7 +139,7 @@ export class JSONProcessor {
       }
       if (k in this.model) {
         // This is safe because of the in check, above.
-        (this.model as unknown as Record<string, unknown>)[k] = json[k];
+        Object.assign(this.model, {[k]: json[k]});
       } else {
         this.warnings.push('Unknown property: ' + k);
       }
