@@ -114,6 +114,7 @@ import {lobbySetupChips} from './lobbySetupChips';
 import {lobbyRoomPath, lobbySeatInvitePath} from '@/common/lobby/lobbyUrl';
 import {continueHref} from './lobbyLinks';
 import {aiBlockerChip} from '@/client/components/create/aiBlockerChip';
+import {appUrl} from '@/client/utils/appUrl';
 import {glassTooltip as vGlassTooltip} from '@/client/directives/GlassTooltip';
 import {translateText, translateTextWithParams} from '@/client/directives/i18n';
 import {AI_LEVEL_OPTIONS} from '@/client/components/create/createGameChoices';
@@ -153,9 +154,9 @@ const shareLink = computed((): {title: string, url: string} | undefined => {
     return undefined;
   }
   if (room.state === 'started') {
-    return room.spectatorId === undefined ? undefined : {title: 'Link for spectators', url: new URL('spectator?id=' + room.spectatorId, document.baseURI).href};
+    return room.spectatorId === undefined ? undefined : {title: 'Link for spectators', url: appUrl('spectator?id=' + room.spectatorId)};
   }
-  return freeSeats.value > 0 ? {title: 'Invite friends', url: new URL(lobbyRoomPath(room.id, room.title), document.baseURI).href} : undefined;
+  return freeSeats.value > 0 ? {title: 'Invite friends', url: appUrl(lobbyRoomPath(room.id, room.title))} : undefined;
 });
 // The server's decision for this room (aiEngineChoice.ts); empty = AI players possible
 const aiBlockedText = computed(() => {
@@ -194,15 +195,15 @@ function guestLink(seat: LobbySeatModel): string | undefined {
     return undefined;
   }
   if (seat.inviteToken !== undefined) {
-    return new URL(lobbySeatInvitePath(props.room.id, props.room.title, seat.inviteToken), document.baseURI).href;
+    return appUrl(lobbySeatInvitePath(props.room.id, props.room.title, seat.inviteToken));
   }
-  return seat.playerId === undefined ? undefined : new URL('player?id=' + seat.playerId, document.baseURI).href;
+  return seat.playerId === undefined ? undefined : appUrl('player?id=' + seat.playerId);
 }
 
 // The seat's button says "Link copied" for a moment
 async function copyLink(index: number, link: string): Promise<void> {
   try {
-    await navigator.clipboard.writeText(new URL(link, document.baseURI).href);
+    await navigator.clipboard.writeText(appUrl(link));
     copiedSeat.value = index;
     setTimeout(() => copiedSeat.value = undefined, 2000);
   } catch {
