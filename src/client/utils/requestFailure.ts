@@ -1,4 +1,5 @@
 import {translateText, translateTextWithParams} from '@/client/directives/i18n';
+import {appUrl} from '@/client/utils/appUrl';
 
 // Fehlermeldungen sollen sagen, WAS schiefging, WARUM und WAS man tun kann – nicht nur "ging nicht".
 // Dieses Modul haelt die Ursache eines fehlgeschlagenen Server-Aufrufs fest (keine Verbindung oder
@@ -39,7 +40,7 @@ export async function failureFromResponse(response: Response): Promise<RequestFa
 export async function fetchOrFail(input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]): Promise<Response> {
   let response: Response;
   try {
-    response = await fetch(input, init);
+    response = await fetch(typeof input === 'string' ? appUrl(input) : input, init);
   } catch {
     throw new RequestFailedError({kind: 'network'});
   }

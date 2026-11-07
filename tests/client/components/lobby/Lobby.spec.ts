@@ -16,6 +16,7 @@ import {LobbyRoomModel, LobbySeatModel} from '@/common/lobby/LobbyModel';
 import {RandomMAOptionType} from '@/common/ma/RandomMAOptionType';
 import {GameSetupOptions} from '@/common/game/GameSetupOptions';
 import {BoardName} from '@/common/boards/BoardName';
+import {appUrl} from '@/client/utils/appUrl';
 
 const OPTIONS: GameSetupOptions = {
   shuffledBoard: false, altVenusBoard: false, requiresVenusTrackCompletion: false, politicalAgendasExtension: 'Standard',
@@ -121,7 +122,7 @@ describe('Lobby components', () => {
     const finished = mount(LobbyGameRow, {...globalConfig, props: {room: room([ai, ai], {state: 'started', spectatorId: 's9', progress, aiTraining: {finished: true}})}});
     expect(finished.find('.lobby-game').classes()).not.contains('lobby-game--info');
     expect(finished.find('.lobby-game-facts').text()).contains('Finished');
-    expect(finished.find('a.lobby-game-watch').attributes('href')).eq('spectator?id=s9');
+    expect(finished.find('a.lobby-game-watch').attributes('href')).eq(appUrl('spectator?id=s9'));
   });
 
   it('LobbyGameRow: own game set off, a click on the entry opens its dialog; games of others stay neutral', async () => {
@@ -223,7 +224,7 @@ describe('Lobby components', () => {
     const wrapper = mount(LobbyRoomDialog, {...globalConfig, props: {open: true, room: started}, attachTo: document.body});
     expect(document.body.textContent).not.contains('Start now');
     const links = Array.from(document.body.querySelectorAll('.lobby-room-foot a')).map((link) => link.getAttribute('href'));
-    expect(links).deep.eq(['player?id=p1']);
+    expect(links).deep.eq([appUrl('player?id=p1')]);
     // The host passes on the link of the player entered by hand; behind the arrow it opens here (several players at one device)
     const guest = document.querySelectorAll<HTMLElement>('.lobby-seat')[1];
     expect(guest.querySelector('.split-button-main')?.textContent).contains('Copy link');
@@ -232,7 +233,7 @@ describe('Lobby components', () => {
     expect(document.querySelector('.split-button-menu a')?.getAttribute('href')).contains('player?id=p2');
     // The own seat the other way round: playing first, copying the own link behind the arrow
     const own = document.querySelectorAll<HTMLElement>('.lobby-seat')[0];
-    expect(own.querySelector('a.split-button-main')?.getAttribute('href')).eq('player?id=p1');
+    expect(own.querySelector('a.split-button-main')?.getAttribute('href')).eq(appUrl('player?id=p1'));
     own.querySelector<HTMLButtonElement>('.split-button-toggle')?.click();
     await nextTick();
     expect(Array.from(document.querySelectorAll('.split-button-menu button')).map((button) => button.textContent)).deep.eq(['Copy link']);
