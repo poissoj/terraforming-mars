@@ -21,6 +21,7 @@ import {showAlert} from '@/client/components/showAlert';
 import {GameId} from '@/common/Types';
 import {paths} from '@/common/app/paths';
 import {describeFailure, failureOf, fetchOrFail} from '@/client/utils/requestFailure';
+import {appUrl} from '@/client/utils/appUrl';
 import {translateText, translateTextWithParams} from '@/client/directives/i18n';
 
 type LoadGameFormDataModel = {
@@ -59,7 +60,7 @@ export default defineComponent({
         .then((response: SimpleGameModel) => {
           // Loading keeps the ids: the players go on with their own links. Solo straight into the game,
           // otherwise into it as spectator to check the loaded state
-          window.location.href = response.players.length === 1 ? 'player?id=' + response.players[0].id : 'spectator?id=' + response.spectatorId;
+          window.location.href = response.players.length === 1 ? appUrl('player?id=' + response.players[0].id) : appUrl('spectator?id=' + response.spectatorId);
         })
         .catch((err) => {
           console.error(err);

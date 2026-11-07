@@ -33,7 +33,7 @@ describe('AdminDashboard', () => {
     global.fetch = (url) => Promise.resolve({
       ok: true,
       status: 200,
-      json: () => Promise.resolve(String(url) === 'api/admin/session' ? {admin: true} : dashboard),
+      json: () => Promise.resolve(String(url).includes('api/admin/session') ? {admin: true} : dashboard),
     } as Response);
   });
 

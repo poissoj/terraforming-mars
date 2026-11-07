@@ -465,6 +465,7 @@ import {defaultCreateGameModel} from './defaultCreateGameModel';
 import {createGameSettingsStorage} from './createGameSettingsStorage';
 import {CreateGameDraft, createGameDraftStorage} from './createGameDraftStorage';
 import {getPreferences, PreferencesManager} from '@/client/utils/PreferencesManager';
+import {appUrl} from '@/client/utils/appUrl';
 import {readSettingsFromHash, replaceSettingsHash, settingsHash} from './settingsLink/settingsLinkHash';
 import {getColony} from '@/client/colonies/ClientColonyManifest';
 import {RULEBOOK_URLS, WIKI_URLS} from '@/client/utils/WikiLinks';
@@ -1419,7 +1420,7 @@ export default defineComponent({
 
       // Clone game checks
       if (this.clonedGameId !== undefined && this.seededGame) {
-        const gameData = await fetch(paths.API_CLONEABLEGAME + '?id=' + this.clonedGameId)
+        const gameData = await fetch(appUrl(paths.API_CLONEABLEGAME + '?id=' + this.clonedGameId))
           .then((response) => {
             if (response.ok) {
               return response.json();

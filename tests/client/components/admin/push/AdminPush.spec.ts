@@ -21,7 +21,7 @@ describe('AdminPush', () => {
     global.fetch = (url) => Promise.resolve({
       ok: true,
       status: 200,
-      json: () => Promise.resolve(String(url) === 'api/admin/push' ? info : {admin: true}),
+      json: () => Promise.resolve(String(url).includes('api/admin/push') ? info : {admin: true}),
     } as Response);
   });
 
@@ -56,7 +56,7 @@ describe('AdminPush', () => {
     global.fetch = (url, init) => Promise.resolve({
       ok: true,
       status: 200,
-      json: () => Promise.resolve(init?.method === 'POST' ? {result: 'sent'} : String(url) === 'api/admin/push' ? info : {admin: true}),
+      json: () => Promise.resolve(init?.method === 'POST' ? {result: 'sent'} : String(url).includes('api/admin/push') ? info : {admin: true}),
     } as Response);
     const wrapper = mount(AdminPush, {...globalConfig});
     for (let i = 0; i < 4; i++) {

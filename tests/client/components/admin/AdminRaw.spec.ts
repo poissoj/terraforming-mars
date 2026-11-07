@@ -14,7 +14,7 @@ describe('AdminRaw', () => {
       ok: true,
       status: 200,
       json: () => Promise.resolve({admin: true}),
-      text: () => Promise.resolve(String(url) === 'api/metrics' ? 'metric 1' : '{"a":1}'),
+      text: () => Promise.resolve(String(url).endsWith('/api/metrics') ? 'metric 1' : '{"a":1}'),
     } as Response);
   });
 

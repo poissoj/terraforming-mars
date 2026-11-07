@@ -168,6 +168,7 @@ import {isTypingTarget} from '@/client/utils/typingTarget';
 import {setDocumentTitle} from '@/client/utils/documentTitle';
 import {describeFailure, failureOf} from '@/client/utils/requestFailure';
 import {showAlert} from '@/client/components/showAlert';
+import {appUrl} from '@/client/utils/appUrl';
 
 const CreateGameForm = defineAsyncComponent(() => import(/* webpackChunkName: "create-game" */ '@/client/components/create/CreateGameForm.vue'));
 
@@ -299,7 +300,7 @@ async function refresh(): Promise<void> {
       return;
     }
     if (mine.yourPlayerId !== undefined) {
-      window.location.href = 'player?id=' + mine.yourPlayerId;
+      window.location.href = appUrl(paths.PLAYER + '?id=' + mine.yourPlayerId);
       return;
     }
   }
@@ -442,10 +443,10 @@ watch(createOpen, (open) => {
   if (open) {
     if (!isLobbyCreatePath(window.location.pathname)) {
       addressBeforeCreate = window.location.href;
-      window.history.replaceState(window.history.state, '', LOBBY_CREATE_PATH);
+      window.history.replaceState(window.history.state, '', appUrl(LOBBY_CREATE_PATH));
     }
   } else if (isLobbyCreatePath(window.location.pathname)) {
-    window.history.replaceState(window.history.state, '', addressBeforeCreate ?? paths.LOBBY);
+    window.history.replaceState(window.history.state, '', appUrl(addressBeforeCreate ?? paths.LOBBY));
     addressBeforeCreate = undefined;
   }
 });

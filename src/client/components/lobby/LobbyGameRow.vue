@@ -36,7 +36,7 @@
       <!-- Own running game: back into it instead of watching -->
       <a v-else-if="continueLink !== undefined" class="btn btn-rounded btn-primary lobby-game-watch" :href="continueLink"><span v-i18n>Continue</span><HotkeyKeys :fixed="keys" /></a>
       <!-- Watching only fits a game in progress: a finished one shows its result -->
-      <a v-else-if="room.state === 'started' && room.spectatorId" class="btn btn-rounded btn-tone-quiet lobby-game-watch" :href="'spectator?id=' + room.spectatorId"><span v-i18n>{{ room.aiTraining?.finished === true ? 'Result' : 'Watch' }}</span><HotkeyKeys :fixed="keys" /></a>
+      <a v-else-if="room.state === 'started' && room.spectatorId" class="btn btn-rounded btn-tone-quiet lobby-game-watch" :href="appUrl('spectator?id=' + room.spectatorId)"><span v-i18n>{{ room.aiTraining?.finished === true ? 'Result' : 'Watch' }}</span><HotkeyKeys :fixed="keys" /></a>
       <!-- Declined by the host: no way in, said as plain information instead of a button that does nothing -->
       <span v-else-if="room.state === 'open' && room.yourAccess === 'declined'" class="lobby-game-declined" v-i18n>Declined by the host</span>
       <!-- Removed twice before: joining asks the host first -->
@@ -66,6 +66,7 @@ import {lobbyDuration} from './lobbyDuration';
 import {lobbyIdleLevel} from './lobbyIdleLevel';
 import {lobbySetupChips} from './lobbySetupChips';
 import {continueHref} from './lobbyLinks';
+import {appUrl} from '@/client/utils/appUrl';
 import {translateText, translateTextWithParams} from '@/client/directives/i18n';
 import {glassTooltip as vGlassTooltip} from '@/client/directives/GlassTooltip';
 
