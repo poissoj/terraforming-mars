@@ -13,6 +13,7 @@ import {defineComponent, nextTick} from 'vue';
 import {NewGameConfig} from '@/common/game/NewGameConfig';
 import {CardName} from '@/common/cards/CardName';
 import {CreateGameModel} from '@/client/components/create/CreateGameModel';
+import type {SegmentOption} from '@/client/components/create/createGameChoices';
 import {ValidationErrors} from '@/common/game/validateNewGameConfig';
 import {ColonyName} from '@/common/colonies/ColonyName';
 import {PreferencesManager} from '@/client/utils/PreferencesManager';
@@ -21,6 +22,16 @@ import {defaultCreateGameModel} from '@/client/components/create/defaultCreateGa
 import {readSettingsFromHash, settingsHash} from '@/client/components/create/settingsLink/settingsLinkHash';
 import {aiSupportInfo, resetAiSupport} from '@/client/utils/aiSupportState';
 import {TYPESCRIPT_AI_SUPPORT} from '@/common/ai/typescript/typescriptAiSupport';
+import {LobbyProfile} from '@/common/lobby/LobbyModel';
+import App from '@/client/components/App.vue';
+
+type OpenInLobbyRequest = {
+  config: NewGameConfig,
+  title: string,
+  listed: boolean,
+  freeSeats: Array<number>,
+  hostPicture: {emoji: string, image?: string},
+};
 
 // Minimal serialized Create Game payload used by settings restore tests.
 function createNewGameConfig(overrides: JSONObject = {}): NewGameConfig & JSONObject {
@@ -55,10 +66,10 @@ function validateTwoPlayerGame(setup: (model: CreateGameModel) => void): Validat
   const wrapper = shallowMount(CreateGameForm, {
     ...globalConfig,
   });
-  const model = wrapper.vm as unknown as CreateGameModel;
+  const model: CreateGameModel = wrapper.vm;
   model.playersCount = 2;
   setup(model);
-  return (wrapper.vm as any).validationErrors;
+  return wrapper.vm.validationErrors;
 }
 
 describe('CreateGameForm', () => {
@@ -95,32 +106,35 @@ describe('CreateGameForm', () => {
       ...globalConfig,
       props: {lobbyProfile: {name: 'Jens', color: 'blue', emoji: '🌕'}},
     });
-    const vm = wrapper.vm as any;
+    const vm = wrapper.vm;
     expect(vm.isHostSeat(0)).is.true;
     expect(vm.isHostSeat(1)).is.false;
     expect(vm.hostEmoji).eq('🌕');
     vm.pickHostEmoji('🪐');
     vm.openInLobby();
-    const request = (wrapper.emitted('open-in-lobby') as Array<Array<any>>)[0][0];
+    const request = wrapper.emitted<[OpenInLobbyRequest]>('open-in-lobby')?.[0]?.[0];
+    if (request === undefined) {
+      throw new Error('open-in-lobby was not emitted');
+    }
     expect(request.hostPicture).deep.eq({emoji: '🪐', image: undefined});
     expect(request.config.players[0].name).eq('Jens');
   });
 
   it('lobby: every change of the own seat goes to the lobby profile right away', async () => {
     const wrapper = shallowMount(CreateGameForm, {...globalConfig});
-    const vm = wrapper.vm as any;
+    const vm = wrapper.vm;
     vm.getPlayers()[0].name = 'Je';
     await nextTick();
     vm.getPlayers()[0].name = 'Jens';
     vm.pickHostEmoji('🪐');
     await nextTick();
-    const profiles = (wrapper.emitted('host-profile') as Array<Array<any>>).map(([profile]) => profile);
+    const profiles = (wrapper.emitted<[LobbyProfile]>('host-profile') ?? []).map(([profile]) => profile);
     expect(profiles.map((profile) => profile.name)).deep.eq(['Je', 'Jens']);
     expect(profiles[1].emoji).eq('🪐');
   });
 
   it('switching on the first AI player makes it an analysis game', () => {
-    const vm = shallowMount(CreateGameForm, {...globalConfig}).vm as any;
+    const vm = shallowMount(CreateGameForm, {...globalConfig}).vm;
     vm.aiAnalysis = false;
     vm.aiPlayersCount = 0;
     vm.aiPlayersCount = 1;
@@ -137,16 +151,16 @@ describe('CreateGameForm', () => {
       {name: 'Dan', color: 'green', beginner: false, handicap: 0, first: false},
       {name: '', color: 'blue', beginner: false, handicap: 0, first: false},
     ]});
-    const vm = shallowMount(CreateGameForm, {...globalConfig, props: {editRoom: {title: 'Evening', listed: false, config, manualSeats: [1]}}}).vm as any;
+    const vm = shallowMount(CreateGameForm, {...globalConfig, props: {editRoom: {title: 'Evening', listed: false, config, manualSeats: [1]}}}).vm;
     expect(vm.gameName).eq('Evening');
     expect(vm.lobbyPublic).is.false;
     expect(vm.playersCount).eq(3);
     expect(vm.createButtonTitle).eq('Save changes');
-    expect(vm.getPlayers().map((player: any, index: number) => vm.isOfferedSeat(player, index))).deep.eq([false, false, true]);
+    expect(vm.getPlayers().map((player: NewPlayerModel, index: number) => vm.isOfferedSeat(player, index))).deep.eq([false, false, true]);
   });
 
   it('lobby without a profile: the host picture is drawn at random', () => {
-    const vm = shallowMount(CreateGameForm, {...globalConfig}).vm as any;
+    const vm = shallowMount(CreateGameForm, {...globalConfig}).vm;
     expect(vm.hostEmoji).is.a('string').with.length.greaterThan(0);
   });
 
@@ -154,11 +168,11 @@ describe('CreateGameForm', () => {
     const wrapper = shallowMount(CreateGameForm, {
       ...globalConfig,
     });
-    const vm = wrapper.vm as any;
+    const vm = wrapper.vm;
     vm.humanPlayersCount = 2;
     vm.aiPlayersCount = 2;
     expect(vm.playersCount).eq(4);
-    expect(vm.getPlayers().map((player: any) => player.aiLevel)).deep.eq([undefined, undefined, 'hard', 'hard']);
+    expect(vm.getPlayers().map((player: NewPlayerModel) => player.aiLevel)).deep.eq([undefined, undefined, 'hard', 'hard']);
 
     // More humans: the AI row gives way
     vm.humanPlayersCount = 5;
@@ -166,31 +180,34 @@ describe('CreateGameForm', () => {
     expect(vm.playersCount).eq(6);
 
     vm.aiPlayersCount = 0;
-    expect(vm.getPlayers().every((player: any) => player.aiLevel === undefined)).is.true;
+    expect(vm.getPlayers().every((player: NewPlayerModel) => player.aiLevel === undefined)).is.true;
   });
 
   it('sends the starred player as first player', async () => {
     const wrapper = shallowMount(CreateGameForm, {
       ...globalConfig,
     });
-    const vm = wrapper.vm as any;
+    const vm = wrapper.vm;
     vm.humanPlayersCount = 3;
     vm.randomFirstPlayer = false;
     vm.firstIndex = 2;
     const config = await vm.serializeSettings();
-    expect(config.players.map((player: any) => player.first)).deep.eq([false, true, false]);
+    if (config === undefined) {
+      throw new Error('serializeSettings returned undefined');
+    }
+    expect(config.players.map((player: NewPlayerModel) => player.first)).deep.eq([false, true, false]);
   });
 
   it('keeps new humans in front of the AI players', () => {
     const wrapper = shallowMount(CreateGameForm, {
       ...globalConfig,
     });
-    const vm = wrapper.vm as any;
+    const vm = wrapper.vm;
     vm.humanPlayersCount = 1;
     vm.aiPlayersCount = 1;
     vm.getPlayers()[1].name = 'Bot';
     vm.humanPlayersCount = 2;
-    expect(vm.getPlayers().map((player: any) => player.aiLevel)).deep.eq([undefined, undefined, 'hard']);
+    expect(vm.getPlayers().map((player: NewPlayerModel) => player.aiLevel)).deep.eq([undefined, undefined, 'hard']);
     expect(vm.getPlayers()[2].name).eq('Bot');
   });
 
@@ -198,17 +215,17 @@ describe('CreateGameForm', () => {
     const wrapper = shallowMount(CreateGameForm, {
       ...globalConfig,
     });
-    const vm = wrapper.vm as any;
+    const vm = wrapper.vm;
     vm.humanPlayersCount = 1;
     vm.aiPlayersCount = 2;
     vm.expansions.colonies = true;
     await wrapper.vm.$nextTick();
     expect(vm.aiPlayersCount).eq(0);
     expect(vm.aiBlockers).deep.eq([{kind: 'expansion', id: 'colonies'}]);
-    expect(vm.aiBlockerChips.map((chip: any) => chip.label)).deep.eq(['Colonies']);
+    expect(vm.aiBlockerChips.map((chip: {label: string}) => chip.label)).deep.eq(['Colonies']);
     // Warning box instead of the AI count, with the chips of the blockers
     const chips = wrapper.find('.create-game-seat-warning').findComponent({name: 'AiSettingChips'});
-    expect(chips.props('chips').map((chip: any) => chip.label)).deep.eq(['Colonies']);
+    expect(chips.props('chips').map((chip: {label: string}) => chip.label)).deep.eq(['Colonies']);
 
     vm.expansions.colonies = false;
     await wrapper.vm.$nextTick();
@@ -220,7 +237,7 @@ describe('CreateGameForm', () => {
     const wrapper = shallowMount(CreateGameForm, {
       ...globalConfig,
     });
-    const vm = wrapper.vm as any;
+    const vm = wrapper.vm;
     vm.toggleExpansion('community');
     expect(vm.expansions.community).eq(true);
     expect(vm.expansions.colonies).eq(true);
@@ -235,19 +252,19 @@ describe('CreateGameForm', () => {
     const wrapper = shallowMount(CreateGameForm, {
       ...globalConfig,
     });
-    (wrapper.vm as any).expansionGrouping = 'corporation';
+    wrapper.vm.expansionGrouping = 'corporation';
     await nextTick();
     const again = shallowMount(CreateGameForm, {
       ...globalConfig,
     });
-    expect((again.vm as any).expansionGrouping).eq('corporation');
+    expect(again.vm.expansionGrouping).eq('corporation');
   });
 
   it('random board is a switch: on draws from the official boards, off restores the chosen board', async () => {
     const wrapper = shallowMount(CreateGameForm, {
       ...globalConfig,
     });
-    const vm = wrapper.vm as any;
+    const vm = wrapper.vm;
     vm.selectBoard(BoardName.ELYSIUM);
     await nextTick();
     expect(vm.boards).deep.eq([BoardName.ELYSIUM]);
@@ -265,7 +282,7 @@ describe('CreateGameForm', () => {
     const wrapper = shallowMount(CreateGameForm, {
       ...globalConfig,
     });
-    const vm = wrapper.vm as any;
+    const vm = wrapper.vm;
     vm.randomBoard = true;
     vm.selectBoard(BoardName.HOLLANDIA);
     expect(vm.boards).includes(BoardName.HOLLANDIA);
@@ -291,7 +308,7 @@ describe('CreateGameForm', () => {
     await nextTick();
     await nextTick();
 
-    const vm = wrapper.vm as any;
+    const vm = wrapper.vm;
     expect(vm.playersCount).eq(3);
     expect(vm.players[0].name).eq('Jens');
     expect(vm.boards).deep.eq([BoardName.ELYSIUM]);
@@ -302,7 +319,7 @@ describe('CreateGameForm', () => {
       ...globalConfig,
     });
     await nextTick();
-    const vm = wrapper.vm as any;
+    const vm = wrapper.vm;
     vm.boards = [BoardName.HELLAS];
     await nextTick();
 
@@ -313,7 +330,7 @@ describe('CreateGameForm', () => {
     const wrapper = shallowMount(CreateGameForm, {
       ...globalConfig,
     });
-    expect((wrapper.vm as any).rememberSettings).is.true;
+    expect(wrapper.vm.rememberSettings).is.true;
   });
 
   it('starts with two human seats when there are no remembered settings', () => {
@@ -333,7 +350,7 @@ describe('CreateGameForm', () => {
     });
     await wrapper.vm.$nextTick();
 
-    expect((wrapper.vm as any).boards).deep.eq([BoardName.THARSIS]);
+    expect(wrapper.vm.boards).deep.eq([BoardName.THARSIS]);
   });
 
   it('sends the selected player as first player', async () => {
@@ -360,13 +377,13 @@ describe('CreateGameForm', () => {
     });
     await wrapper.vm.$nextTick();
 
-    expect((wrapper.vm as any).playersCount).eq(2);
-    expect((wrapper.vm as any).players[0].name).eq('Alice');
-    expect((wrapper.vm as any).players[1].name).eq('Bob');
-    expect((wrapper.vm as any).boards).deep.eq([BoardName.HELLAS]);
-    expect((wrapper.vm as any).draftVariant).eq(false);
-    expect((wrapper.vm as any).expansions.venus).eq(true);
-    expect((wrapper.vm as any).solarPhaseOption).eq(true);
+    expect(wrapper.vm.playersCount).eq(2);
+    expect(wrapper.vm.players[0].name).eq('Alice');
+    expect(wrapper.vm.players[1].name).eq('Bob');
+    expect(wrapper.vm.boards).deep.eq([BoardName.HELLAS]);
+    expect(wrapper.vm.draftVariant).eq(false);
+    expect(wrapper.vm.expansions.venus).eq(true);
+    expect(wrapper.vm.solarPhaseOption).eq(true);
   });
 
   it('keeps one human and the AI players when restoring remembered settings', async () => {
@@ -428,8 +445,8 @@ describe('CreateGameForm', () => {
     });
     await wrapper.vm.$nextTick();
 
-    expect((wrapper.vm as any).typedRefs().file).is.not.undefined;
-    expect(() => (wrapper.vm as any).uploadSettings()).not.to.throw();
+    expect(wrapper.vm.typedRefs().file).is.not.undefined;
+    expect(() => wrapper.vm.uploadSettings()).not.to.throw();
   });
 
   it('shows warnings when restoring saved settings', async () => {
@@ -452,7 +469,11 @@ describe('CreateGameForm', () => {
       },
     });
     const form = wrapper.findComponent(CreateGameForm);
-    (form.vm.$root as any).showAlert = (title: string, message: string | {text: string}) => {
+    const root = form.vm.$root as InstanceType<typeof App> | null;
+    if (root === null) {
+      throw new Error('CreateGameForm has no root');
+    }
+    root.showAlert = (title: string, message: string | {text: string}) => {
       alerts.push({title, message});
     };
 
@@ -460,7 +481,7 @@ describe('CreateGameForm', () => {
       customPreludes: ['Bad Prelude Name'],
     }));
 
-    (form.vm as any).restoreLastSettings();
+    form.vm.restoreLastSettings();
     await form.vm.$nextTick();
 
     expect(alerts).deep.eq([{
@@ -477,13 +498,13 @@ describe('CreateGameForm', () => {
     });
     await wrapper.vm.$nextTick();
 
-    expect((wrapper.vm as any).boards).deep.eq([BoardName.HELLAS]);
+    expect(wrapper.vm.boards).deep.eq([BoardName.HELLAS]);
 
-    (wrapper.vm as any).resetSettings();
+    wrapper.vm.resetSettings();
     await wrapper.vm.$nextTick();
 
-    expect((wrapper.vm as any).boards).deep.eq([BoardName.THARSIS]);
-    expect((wrapper.vm as any).draftVariant).eq(true);
+    expect(wrapper.vm.boards).deep.eq([BoardName.THARSIS]);
+    expect(wrapper.vm.draftVariant).eq(true);
     expect(createGameSettingsStorage.load()).eq(undefined);
     expect(wrapper.findAllComponents({name: 'AppButton'}).map((button) => button.props('title'))).includes('Reset');
   });
@@ -499,47 +520,47 @@ describe('CreateGameForm', () => {
         {name: 'Bob', color: 'red', beginner: false, handicap: 0},
       ],
     }))).throws('Colors are duplicated');
-    expect((wrapper.vm as any).uploading).eq(false);
+    expect(wrapper.vm.uploading).eq(false);
   });
 
   it('saves current settings when the game is opened in the lobby', async () => {
     const wrapper = shallowMount(CreateGameForm, {
       ...globalConfig,
     });
-    (wrapper.vm as any).playersCount = 2;
-    (wrapper.vm as any).randomFirstPlayer = false;
-    (wrapper.vm as any).players[0].name = 'Alice';
-    (wrapper.vm as any).players[1].name = 'Bob';
-    (wrapper.vm as any).boards = [BoardName.ELYSIUM];
+    wrapper.vm.playersCount = 2;
+    wrapper.vm.randomFirstPlayer = false;
+    wrapper.vm.players[0].name = 'Alice';
+    wrapper.vm.players[1].name = 'Bob';
+    wrapper.vm.boards = [BoardName.ELYSIUM];
 
-    await (wrapper.vm as any).openInLobby();
+    await wrapper.vm.openInLobby();
 
     const savedSettings = createGameSettingsStorage.load();
     expect(savedSettings?.boards).deep.eq([BoardName.ELYSIUM]);
-    expect((savedSettings?.players as Array<{name: string}>).map((player) => player.name)).deep.eq(['Alice', 'Bob']);
+    expect((savedSettings?.players as Array<{name: string}>).map((player: {name: string}) => player.name)).deep.eq(['Alice', 'Bob']);
     expect(wrapper.emitted('open-in-lobby')).has.length(1);
   });
   it('offers the manual milestone segment only for manual milestones and awards', async () => {
     const wrapper = shallowMount(CreateGameForm, {
       ...globalConfig,
     });
-    const model = wrapper.vm as unknown as CreateGameModel;
-    const values = () => (wrapper.vm as any).milestoneOptions.map((option: {value: string}) => option.value);
+    const model: CreateGameModel = wrapper.vm;
+    const values = () => wrapper.vm.milestoneOptions.map((option: SegmentOption) => option.value);
     expect(values()).not.to.include(RandomMAOptionType.MANUAL);
 
     model.randomMA = RandomMAOptionType.MANUAL;
     model.customMA = {milestones: ['Terraformer'], awards: ['Banker']};
     await nextTick();
     expect(values()).to.include(RandomMAOptionType.MANUAL);
-    expect((wrapper.vm as any).isRandomMAEnabled()).is.false;
-    expect((wrapper.vm as any).newGameConfig.customMA).deep.eq({milestones: ['Terraformer'], awards: ['Banker']});
+    expect(wrapper.vm.isRandomMAEnabled()).is.false;
+    expect(wrapper.vm.newGameConfig.customMA).deep.eq({milestones: ['Terraformer'], awards: ['Banker']});
   });
 
   it('leaving manual milestones and awards drops customMA', async () => {
     const wrapper = shallowMount(CreateGameForm, {
       ...globalConfig,
     });
-    const model = wrapper.vm as unknown as CreateGameModel;
+    const model: CreateGameModel = wrapper.vm;
     model.randomMA = RandomMAOptionType.MANUAL;
     model.customMA = {milestones: ['Terraformer'], awards: ['Banker']};
     await nextTick();
@@ -547,7 +568,7 @@ describe('CreateGameForm', () => {
     model.randomMA = RandomMAOptionType.LIMITED;
     await nextTick();
     expect(model.customMA).is.undefined;
-    expect((wrapper.vm as any).milestoneOptions.map((option: {value: string}) => option.value)).not.to.include(RandomMAOptionType.MANUAL);
+    expect(wrapper.vm.milestoneOptions.map((option: SegmentOption) => option.value)).not.to.include(RandomMAOptionType.MANUAL);
   });
 
   it('solo games ignore the milestone and award settings', async () => {
@@ -593,8 +614,8 @@ describe('CreateGameForm', () => {
     expect(createGameButton()?.props('disabled')).is.false;
     expect(wrapper.findComponent({name: 'ValidationProblems'}).exists()).is.false;
 
-    (wrapper.vm as any).playersCount = 2;
-    (wrapper.vm as any).customCorporations = cardNames(3);
+    wrapper.vm.playersCount = 2;
+    wrapper.vm.customCorporations = cardNames(3);
     await wrapper.vm.$nextTick();
 
     expect(createGameButton()?.props('disabled')).is.true;
@@ -605,13 +626,13 @@ describe('CreateGameForm', () => {
     const wrapper = shallowMount(CreateGameForm, {
       ...globalConfig,
     });
-    const model = wrapper.vm as unknown as CreateGameModel;
+    const model: CreateGameModel = wrapper.vm;
     model.playersCount = 2;
     model.escapeVelocityMode = true;
     model.escapeVelocityThreshold = 35;
     // A cleared number input binds as an empty string.
-    model.escapeVelocityPeriod = '' as unknown as number;
-    const config: NewGameConfig | undefined = await (wrapper.vm as any).serializeSettings();
+    Reflect.set(model, 'escapeVelocityPeriod', '');
+    const config: NewGameConfig | undefined = await wrapper.vm.serializeSettings();
     expect(config?.escapeVelocity).deep.eq({
       thresholdMinutes: 35,
       bonusSectionsPerAction: 2,
@@ -624,7 +645,7 @@ describe('CreateGameForm', () => {
     const wrapper = shallowMount(CreateGameForm, {
       ...globalConfig,
     });
-    const groups = (wrapper.vm as any).boardGroups;
+    const groups = wrapper.vm.boardGroups;
     expect(groups[0].boards).includes(BoardName.AMAZONIS_PLANITIA);
     expect(groups[1].boards).not.includes(BoardName.AMAZONIS_PLANITIA);
   });
