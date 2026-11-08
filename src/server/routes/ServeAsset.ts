@@ -25,6 +25,26 @@ const FIXED_FILES: ReadonlyArray<string> = [
   'assets/pwa/manifest.webmanifest', // PWA manifest: fixed path, since the extension is otherwise not allowed
 ];
 
+/**
+ * Rewrites the app page for the Vite build and, when needed, for a page below the app root.
+ *
+ * assets/index.html keeps `main.js` and `client.css` as development fallbacks. A production
+ * build names both files with a content hash, so they must be replaced before the page is sent.
+ */
+export function rewriteIndexHtml(raw: string, base: string | undefined, entry: string | undefined, css: string | undefined): string {
+  let html = withServerIdentity(raw);
+  if (base !== undefined) {
+    html = html.replace('<head>', `<head>\n        <base href="${base}">`);
+  }
+  if (entry !== undefined) {
+    html = html.replace('src="main.js"', `src="${entry}"`);
+  }
+  if (css !== undefined) {
+    html = html.replace('href="client.css"', `href="${css}"`);
+  }
+  return html;
+}
+
 export class FileAPI {
   public static readonly INSTANCE: FileAPI = new FileAPI();
 
@@ -138,20 +158,22 @@ export class ServeAsset extends Handler {
     }
   }
 
+  /**
+   * Renders the app page, optionally below the app root for the lobby's nested addresses.
+   *
+   * Public because LobbySubPage serves the same index.html with a <base> element and must use
+   * the same Vite entry and stylesheet rewriting as ServeApp.
+   */
+  public renderAppPage(raw: Buffer, base?: string): Buffer {
+    const entry = this.mainEntry();
+    return Buffer.from(rewriteIndexHtml(raw.toString('utf8'), base, entry, this.mainCssFile));
+  }
+
   // Page and PWA manifest carry this server's titles and name (TITLE_LONG, TITLE_SHORT, SERVER_NAME)
   private withIdentity(file: string, raw: Buffer): Buffer {
     switch (file) {
-    case 'assets/index.html': {
-      let html = withServerIdentity(raw.toString('utf8'));
-      const entry = this.mainEntry();
-      if (entry !== undefined) {
-        html = html.replace('src="main.js"', `src="${entry}"`);
-      }
-      if (this.mainCssFile !== undefined) {
-        html = html.replace('href="client.css"', `href="${this.mainCssFile}"`);
-      }
-      return Buffer.from(html);
-    }
+    case 'assets/index.html':
+      return this.renderAppPage(raw);
     case 'assets/pwa/manifest.webmanifest':
       return Buffer.from(withManifestIdentity(raw.toString('utf8')));
     default:
