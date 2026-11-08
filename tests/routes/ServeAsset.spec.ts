@@ -2,9 +2,31 @@ import path from 'path';
 import {expect} from 'chai';
 import fs from 'fs';
 import {FileAPI, ServeAsset} from '../../src/server/routes/ServeAsset';
+import {rewriteIndexHtml} from '../../src/server/routes/ServeAsset';
 import {MockResponse} from './HttpMocks';
 import {RouteTestScaffolding} from './RouteTestScaffolding';
 import {statusCode} from '../../src/common/http/statusCode';
+class ManifestFileApiMock extends FileAPI {
+  public constructor() {
+    super();
+  }
+  public override readFileSync(file: string): Buffer {
+    if (file === 'build/main-manifest.json') {
+      return Buffer.from(JSON.stringify({
+        'src/client/main.ts': {isEntry: true, file: 'main-abc.js'},
+        'style.css': {file: 'client-abc.css'},
+      }));
+    }
+    return Buffer.from('data: ' + file);
+  }
+  public override readFile(file: string): Promise<Buffer> {
+    return Promise.resolve(Buffer.from('data: ' + file));
+  }
+  public override existsSync(_file: string): boolean {
+    return true;
+  }
+}
+
 class FileApiMock extends FileAPI {
   public counts = {
     readFile: 0,
@@ -64,6 +86,29 @@ describe('ServeAsset', () => {
     scaffolding.req.headers['accept-encoding'] = '';
     await scaffolding.get(instance, res);
     expect(res.content.startsWith('<!DOCTYPE html>'));
+  });
+
+  it('rewrites the Vite entry, stylesheet and base', () => {
+    const html = rewriteIndexHtml(
+      '<head></head><script src="main.js"></script><link rel="stylesheet" href="client.css">',
+      '../',
+      'main-abc.js',
+      'client-abc.css');
+    expect(html).contains('<base href="../">');
+    expect(html).contains('src="main-abc.js"');
+    expect(html).contains('href="client-abc.css"');
+    expect(html).not.contains('src="main.js"');
+    expect(html).not.contains('href="client.css"');
+  });
+
+  it('renderAppPage uses the Vite manifest', () => {
+    instance = new ServeAsset(undefined, false, new ManifestFileApiMock());
+    const html = instance.renderAppPage(Buffer.from(
+      '<head></head><script src="main.js"></script><link rel="stylesheet" href="client.css">'),
+    './').toString('utf8');
+    expect(html).contains('<base href="./">');
+    expect(html).contains('src="main-abc.js"');
+    expect(html).contains('href="client-abc.css"');
   });
 
   it('styles.css', async () => {
