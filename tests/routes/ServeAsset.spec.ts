@@ -58,6 +58,17 @@ describe('ServeAsset', () => {
     expect(res.content).eq('data: build/sw.js');
   });
 
+  it('serves hashed Vite entry and component CSS', async () => {
+    instance = new ServeAsset(undefined, false, fileApi);
+    for (const path of ['main-abc.js', 'client-abc.css']) {
+      res = new MockResponse();
+      scaffolding.url = '/' + path;
+      scaffolding.req.headers['accept-encoding'] = '';
+      await scaffolding.get(instance, res);
+      expect(res.content).eq(`data: build/${path}`);
+    }
+  });
+
   it('chunk js file', async () => {
     instance = new ServeAsset(undefined, false, fileApi);
     scaffolding.url = '/chunks/player-home.js';
