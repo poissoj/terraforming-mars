@@ -266,10 +266,10 @@ export class ServeAsset extends Handler {
     default:
       // The hashed entry file emitted by Vite (named in assets/index.html at serve time).
       if (/^main-[A-Za-z0-9_-]+\.js$/.test(urlPath)) {
-        return this.toMainFile(urlPath, encodings);
+        return this.toMainFile(`build/${urlPath}`, encodings);
       }
       if (/^client-[A-Za-z0-9_-]+\.css$/.test(urlPath)) {
-        return this.toMainFile(urlPath, encodings);
+        return this.toMainFile(`build/${urlPath}`, encodings);
       }
       // Serve JS chunks produced by the Vite build.
       if (urlPath.startsWith('chunks/')) {
