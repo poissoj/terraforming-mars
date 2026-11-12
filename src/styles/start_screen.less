@@ -544,6 +544,23 @@
   }
 }
 
+// Short desktop windows: the regular spacing makes the start page scroll (1005px window height produces about
+// 118px of overflow). Compress the space above the menu and below to the footer; the title offset follows the
+// smaller top padding so the logo stays visible and the planet background keeps its 24px gap to the menu.
+@media only screen and (min-width: 1024px) and (max-height: 1122px) {
+  .start-screen {
+    margin-bottom: 0;
+  }
+
+  .start-screen-links {
+    padding-top: 46px;
+  }
+
+  .start-screen-title {
+    top: -28px;
+  }
+}
+
 // Users with reduced motion enabled get the hover change without animation
 @media (prefers-reduced-motion: reduce) {
   .start-screen-link,
