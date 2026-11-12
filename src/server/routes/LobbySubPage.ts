@@ -4,6 +4,7 @@ import {Context} from './IHandler';
 import {Request} from '../Request';
 import {Response} from '../Response';
 import {ServeAsset} from './ServeAsset';
+import {publicOrigin} from '../server/publicOrigin';
 
 /**
  * The app page at the lobby's addresses (lobby and below lobby/, common/lobby/lobbyUrl.ts). The page loads everything
@@ -22,8 +23,8 @@ export class LobbySubPage extends Handler {
     super();
   }
 
-  public override get(_req: Request, res: Response, _ctx: Context): Promise<void> {
-    const html = ServeAsset.INSTANCE.renderAppPage(fs.readFileSync('assets/index.html'), this.base);
+  public override get(req: Request, res: Response, _ctx: Context): Promise<void> {
+    const html = ServeAsset.INSTANCE.renderAppPage(fs.readFileSync('assets/index.html'), this.base, publicOrigin(req));
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache');
     res.end(html);
