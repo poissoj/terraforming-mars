@@ -10,7 +10,8 @@ import {isProduction} from '../utils/server';
 import {Request} from '../Request';
 import {Response} from '../Response';
 import {RouteError} from './RouteError';
-import {withManifestIdentity, withServerIdentity} from '../server/serverIdentity';
+import {serverIdentity, withManifestIdentity, withServerIdentity, withSocialPreview} from '../server/serverIdentity';
+import {publicOrigin} from '../server/publicOrigin';
 import {faviconFile} from '../../common/admin/favicons';
 
 type Encoding = 'gzip' | 'br';
@@ -78,8 +79,10 @@ export class ServeAsset extends Handler {
 
     const file = toFile.file;
 
-    // asset caching
-    const buffer = this.cacheAssets ? this.cache.get(file) : undefined;
+    // asset caching. The app page carries the request origin in its Open Graph tags, so it must
+    // not be shared between requests with different hosts.
+    const cacheable = file !== 'assets/index.html';
+    const buffer = this.cacheAssets && cacheable ? this.cache.get(file) : undefined;
     if (buffer !== undefined) {
       if (req.headers['if-none-match'] === buffer.hash) {
         responses.notModified(res);
@@ -108,8 +111,8 @@ export class ServeAsset extends Handler {
 
     try {
       const raw = await this.fileApi.readFile(file);
-      const data = this.withIdentity(file, raw);
-      if (this.cacheAssets === true) {
+      const data = this.withIdentity(file, raw, publicOrigin(req));
+      if (this.cacheAssets === true && cacheable) {
         this.cache.set(file, data);
       }
       res.setHeader('Content-Length', data.length);
@@ -123,11 +126,24 @@ export class ServeAsset extends Handler {
     }
   }
 
+  /**
+   * Renders the app page, optionally below the app root for the lobby's nested addresses.
+   *
+   * Public because LobbySubPage serves the same index.html with a <base> element.
+   */
+  public renderAppPage(raw: Buffer, base?: string, origin?: string): Buffer {
+    const identity = serverIdentity();
+    let html = withSocialPreview(withServerIdentity(raw.toString('utf8'), identity), identity, origin);
+    if (base !== undefined) {
+      html = html.replace('<head>', `<head>\n        <base href="${base}">`);
+    }
+    return Buffer.from(html);
+  }
   // Page and PWA manifest carry this server's titles and name (TITLE_LONG, TITLE_SHORT, SERVER_NAME)
-  private withIdentity(file: string, raw: Buffer): Buffer {
+  private withIdentity(file: string, raw: Buffer, origin: string | undefined): Buffer {
     switch (file) {
     case 'build/index.html':
-      return Buffer.from(withServerIdentity(raw.toString('utf8')));
+      return this.renderAppPage(raw, undefined, origin);
     case 'assets/pwa/manifest.webmanifest':
       return Buffer.from(withManifestIdentity(raw.toString('utf8')));
     default:

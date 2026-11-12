@@ -50,6 +50,15 @@ describe('ServeAsset', () => {
     expect(res.content.startsWith('<!DOCTYPE html>'));
   });
 
+  it('index.html has absolute Open Graph image tags', async () => {
+    scaffolding.url = '/build/index.html';
+    scaffolding.req.headers['accept-encoding'] = '';
+    scaffolding.req.headers.host = 'tm.example:8080';
+    await scaffolding.get(instance, res);
+    expect(res.content).contains('<meta property="og:image" content="http://tm.example:8080/assets/social-preview.jpg" />');
+    expect(res.content).not.contains('twitter:');
+  });
+
   it('sw.js', async () => {
     instance = new ServeAsset(undefined, false, fileApi);
     scaffolding.url = '/sw.js';

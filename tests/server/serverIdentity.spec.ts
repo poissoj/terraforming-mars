@@ -1,5 +1,5 @@
 import {expect} from 'chai';
-import {serverIdentity, withManifestIdentity, withServerIdentity} from '../../src/server/server/serverIdentity';
+import {serverIdentity, withManifestIdentity, withServerIdentity, withSocialPreview} from '../../src/server/server/serverIdentity';
 
 describe('serverIdentity', () => {
   it('falls back to the defaults', () => {
@@ -18,6 +18,22 @@ describe('serverIdentity', () => {
     expect(html).to.contain('<meta name="server-title-short" content="&lt;S&gt;" />');
     expect(html).to.contain('<meta name="server-name" content="" />');
     expect(html.indexOf('<title>')).to.be.lessThan(html.indexOf('</head>'));
+  });
+
+  it('adds absolute Open Graph tags for link previews', () => {
+    const identity = {titleLong: 'TM | Meenzer & Söhne', titleShort: 'TM MZ', name: ''};
+    const html = withSocialPreview('<html><head></head><body></body></html>', identity, 'https://tm.example/app');
+    expect(html).to.contain('<meta property="og:title" content="TM | Meenzer &amp; Söhne" />');
+    expect(html).to.contain('<meta property="og:site_name" content="TM | Meenzer &amp; Söhne" />');
+    expect(html).to.contain('<meta property="og:image" content="https://tm.example/app/assets/social-preview.jpg" />');
+    expect(html).to.contain('<meta property="og:image:width" content="1200" />');
+    expect(html).to.contain('<meta property="og:image:height" content="630" />');
+    expect(html).not.to.contain('twitter:');
+  });
+
+  it('leaves the page unchanged without a public origin', () => {
+    const html = '<html><head></head><body></body></html>';
+    expect(withSocialPreview(html, {titleLong: 'TM', titleShort: 'TM', name: ''}, undefined)).eq(html);
   });
 
   it('uses the short title as home screen name', () => {
