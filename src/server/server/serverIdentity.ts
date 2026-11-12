@@ -40,6 +40,30 @@ export function withServerIdentity(html: string, identity: ServerIdentity = serv
     .replace(/( *)<\/head>/, `        ${tags}\n$1</head>`);
 }
 
+/**
+ * Open Graph tags for link previews (WhatsApp, Facebook, Discord …). The image URL must be absolute,
+ * so the caller passes the public origin. Without an origin the page stays unchanged.
+ */
+export function withSocialPreview(html: string, identity: ServerIdentity, origin: string | undefined): string {
+  if (origin === undefined) {
+    return html;
+  }
+  const image = `${origin}/assets/social-preview.jpg`;
+  const tags = [
+    '<meta property="og:type" content="website" />',
+    `<meta property="og:title" content="${escapeHtml(identity.titleLong)}" />`,
+    '<meta property="og:description" content="Terraforming Mars Open Source Web Application" />',
+    `<meta property="og:site_name" content="${escapeHtml(identity.titleLong)}" />`,
+    `<meta property="og:image" content="${escapeHtml(image)}" />`,
+    '<meta property="og:image:type" content="image/jpeg" />',
+    '<meta property="og:image:width" content="1200" />',
+    '<meta property="og:image:height" content="630" />',
+    '<meta property="og:image:alt" content="Terraforming Mars board and playing cards" />',
+  ].join('\n        ');
+  // index.html indents with four spaces per level
+  return html.replace(/( *)<\/head>/, `        ${tags}\n$1</head>`);
+}
+
 /** PWA manifest with this server's titles: name in install dialogs, short_name under the home screen icon. */
 export function withManifestIdentity(manifest: string, identity: ServerIdentity = serverIdentity()): string {
   return JSON.stringify({...JSON.parse(manifest), name: identity.titleLong, short_name: identity.titleShort}, null, 2);

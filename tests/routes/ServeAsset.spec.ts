@@ -88,6 +88,15 @@ describe('ServeAsset', () => {
     expect(res.content.startsWith('<!DOCTYPE html>'));
   });
 
+  it('index.html has absolute Open Graph image tags', async () => {
+    scaffolding.url = '/assets/index.html';
+    scaffolding.req.headers['accept-encoding'] = '';
+    scaffolding.req.headers.host = 'tm.example:8080';
+    await scaffolding.get(instance, res);
+    expect(res.content).contains('<meta property="og:image" content="http://tm.example:8080/assets/social-preview.jpg" />');
+    expect(res.content).not.contains('twitter:');
+  });
+
   it('rewrites the Vite entry, stylesheet and base', () => {
     const html = rewriteIndexHtml(
       '<head></head><script src="main.js"></script><link rel="stylesheet" href="client.css">',
