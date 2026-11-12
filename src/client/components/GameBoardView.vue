@@ -58,8 +58,8 @@
   </BoardZoomModal>
 
   <div v-if="players.length > 1" class="player_home_block--milestones-and-awards">
-    <Milestones :milestones="game.milestones" />
-    <Awards :awards="game.awards" />
+    <Milestones :milestones="game.milestones" :showScores="!setupPhase" :showDescriptionDefault="setupPhase" />
+    <Awards :awards="game.awards" :showScores="!setupPhase" :showDescriptionDefault="setupPhase" />
     <!-- The same data as a table; only visible in the two-column layout (milestone_award_table.less) -->
     <MilestoneAwardTable :milestones="game.milestones" :awards="game.awards" :players="players" :viewerColor="viewerColor" />
   </div>
@@ -115,6 +115,11 @@ export default defineComponent({
     viewerColor: {
       type: String as PropType<Color | undefined>,
       default: undefined,
+    },
+    // Initial selection: no player scores yet, and the descriptions explain the goal before the game starts.
+    setupPhase: {
+      type: Boolean,
+      default: false,
     },
   },
   emits: ['toggleTileView'],

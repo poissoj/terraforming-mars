@@ -60,6 +60,11 @@ export default defineComponent({
       type: Boolean,
       default: true,
     },
+    // Start phase: explanations are visible without the player having to click the title.
+    showDescriptionDefault: {
+      type: Boolean,
+      default: false,
+    },
     preferences: {
       type: Object as () => Readonly<Preferences>,
       default: () => PreferencesManager.INSTANCE.values(),
@@ -68,7 +73,7 @@ export default defineComponent({
   data() {
     return {
       showAwardDetails: this.preferences?.show_award_details,
-      showDescription: false,
+      showDescription: this.showDescriptionDefault,
     };
   },
   methods: {
