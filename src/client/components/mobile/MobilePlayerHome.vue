@@ -6,18 +6,13 @@
          "Turn" opens the action menu as a sheet; inside a task the footer bar becomes the task bar
          (Cancel + Confirm/Pay for the input). -->
 
-    <MobileHeader v-if="!isSetupPhase" :game="game" @click="go('players')" :aria-label="$t('Players')">
-      <span class="mb-top-money">
-        <i class="resource_icon resource_icon--megacredits"></i>
-        <b>{{ thisPlayer.megacredits }}</b>
-        <small>{{ signed(thisPlayer.megacreditProduction) }}</small>
-      </span>
-    </MobileHeader>
+    <MobileHeader v-if="!isSetupPhase" :game="game" @click="go('players')" :aria-label="$t('Players')" />
+    <MobileResourceBar v-if="!isSetupPhase" :player="thisPlayer" :game="game" :player-number="playerView.players.length" />
 
     <main class="mb-main">
       <MobileMarsScreen v-show="screen === 'mars' || peek === 'mars'" ref="gameBoardView" :class="{'mb-screen--peek': peek === 'mars'}"
         :game="game" :players="playerView.players" :participantId="playerView.id" :tileView="tileView"
-        :acting="acting" :bannerTitle="bannerTitle" :viewerColor="thisPlayer.color"
+        :acting="acting" :bannerTitle="bannerTitle" :viewerColor="thisPlayer.color" :showToolbar="false"
         @toggleTileView="cycleTileView()" @showMilestones="showMilestones">
         <template #timer>
           <PlayerTimer v-if="game.gameOptions.showTimers" class="mb-banner-timer" :timer="thisPlayer.timer" :live="game.phase !== 'end'" />
@@ -158,6 +153,7 @@ import {isChoiceMenu} from '@/client/components/choiceMenu';
 import {OrOptionsModel, PlayerInputModel} from '@/common/models/PlayerInputModel';
 import {MOBILE_NAV, MobileNavItem, MobileScreen, PlayersSegment} from '@/client/components/mobile/mobileScreens';
 import MobileHeader from '@/client/components/mobile/MobileHeader.vue';
+import MobileResourceBar from '@/client/components/mobile/MobileResourceBar.vue';
 import MobileMarsScreen from '@/client/components/mobile/MobileMarsScreen.vue';
 import MobileNav from '@/client/components/mobile/MobileNav.vue';
 import MobilePlayersPanel from '@/client/components/mobile/MobilePlayersPanel.vue';
@@ -313,6 +309,7 @@ export default defineComponent({
     PlayerSetupView,
     WaitingFor,
     MobileHeader,
+    MobileResourceBar,
     MobileMarsScreen,
     MobileNav,
     MobilePlayersPanel,
@@ -452,9 +449,6 @@ export default defineComponent({
   },
   methods: {
     markHorizontalScroll,
-    signed(value: number): string {
-      return value >= 0 ? '+' + value : String(value);
-    },
     // Newly drawn cards open in the log (LogPanel.vue): switch there, and back once they are closed
     showDrawnCards() {
       if (this.screen !== 'log') {
