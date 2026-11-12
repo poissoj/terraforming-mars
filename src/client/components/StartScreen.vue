@@ -23,12 +23,10 @@
         :style="{'--sprite-row': index + 1}"
         :href="link.href"
         :target="link.external ? '_blank' : undefined"
-        @pointerdown="lastPointerType = $event.pointerType"
         @pointerenter="$event.pointerType === 'mouse' && activate(index)"
         @pointerleave="$event.pointerType === 'mouse' && deactivate(index)"
         @focus="($event.target as HTMLElement).matches(':focus-visible') && activate(index)"
-        @blur="deactivate(index)"
-        @click="onClick(index, $event)">
+        @blur="deactivate(index)">
         <!-- Planet surface: WebGL (planetGlobeRenderer.ts) or without WebGL flat via CSS (planetFlatRenderer.ts) -->
         <canvas class="start-screen-link-planet" :ref="(element) => setCanvas(index, element)" aria-hidden="true"></canvas>
         <span class="start-screen-link-content">
@@ -82,12 +80,9 @@ function setHovered(index: number, hovered: boolean): void {
   }
 }
 
-// Highlight (glow, rotation): mouse hover, keyboard focus or first tap on touch devices
+// Highlight (glow, rotation): mouse hover and keyboard focus. Touch has no hover state:
+// its first tap follows the link immediately instead of spending the tap on the highlight.
 const activeIndex = ref<number | undefined>(undefined);
-const lastPointerType = ref('');
-// Double tap: if the second tap comes within this time, it opens the link immediately without anything glowing first
-const DOUBLE_TAP_WINDOW = 300;
-let pendingTap: {index: number, timer: number} | undefined;
 
 function activate(index: number): void {
   if (activeIndex.value !== undefined && activeIndex.value !== index) {
@@ -102,29 +97,6 @@ function deactivate(index: number): void {
     activeIndex.value = undefined;
     setHovered(index, false);
   }
-}
-
-// Touch: first tap highlights, second opens the link; a quick double tap opens directly
-function onClick(index: number, event: MouseEvent): void {
-  if (lastPointerType.value !== 'touch' || activeIndex.value === index) {
-    return;
-  }
-  if (pendingTap?.index === index) {
-    window.clearTimeout(pendingTap.timer);
-    pendingTap = undefined;
-    return;
-  }
-  event.preventDefault();
-  if (pendingTap !== undefined) {
-    window.clearTimeout(pendingTap.timer);
-  }
-  pendingTap = {
-    index,
-    timer: window.setTimeout(() => {
-      pendingTap = undefined;
-      activate(index);
-    }, DOUBLE_TAP_WINDOW),
-  };
 }
 
 // A tap outside the menu items removes the highlight
@@ -243,9 +215,6 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   endIntro();
   document.removeEventListener('pointerdown', onDocumentPointerDown);
-  if (pendingTap !== undefined) {
-    window.clearTimeout(pendingTap.timer);
-  }
   rotation?.stop();
   resizeObserver?.disconnect();
 });

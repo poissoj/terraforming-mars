@@ -1,5 +1,4 @@
 import {shallowMount} from '@vue/test-utils';
-import {vi} from 'vitest';
 import {expect} from 'chai';
 import {globalConfig} from './getLocalVue';
 import StartScreen from '@/client/components/StartScreen.vue';
@@ -41,45 +40,22 @@ describe('StartScreen', () => {
     expect(targets).to.deep.eq([undefined, undefined, ...Array(6).fill('_blank')]);
   });
 
-  it('highlights on the first tap and opens the link on the second tap', async () => {
-    vi.useFakeTimers();
-    try {
-      const wrapper = shallowMount(StartScreen, {...globalConfig});
-      const link = wrapper.findAll('a.start-screen-link')[2];
-      const tap = async () => {
-        await link.trigger('pointerdown', {pointerType: 'touch'});
-        const event = new MouseEvent('click', {bubbles: true, cancelable: true});
-        link.element.dispatchEvent(event);
-        return event.defaultPrevented;
-      };
-      expect(await tap()).to.be.true;
-      vi.advanceTimersByTime(400);
-      await wrapper.vm.$nextTick();
-      expect(link.classes()).to.include('start-screen-link--active');
-      expect(await tap()).to.be.false;
-    } finally {
-      vi.useRealTimers();
-    }
+  it('follows a link on the first touch tap without spending it on the highlight', async () => {
+    const wrapper = shallowMount(StartScreen, {...globalConfig});
+    const link = wrapper.findAll('a.start-screen-link')[2];
+    await link.trigger('pointerdown', {pointerType: 'touch'});
+    const event = new MouseEvent('click', {bubbles: true, cancelable: true});
+    link.element.dispatchEvent(event);
+    expect(event.defaultPrevented).to.be.false;
+    expect(link.classes()).not.to.include('start-screen-link--active');
   });
 
-  it('opens the link directly on a double tap without highlighting first', async () => {
-    vi.useFakeTimers();
-    try {
-      const wrapper = shallowMount(StartScreen, {...globalConfig});
-      const link = wrapper.findAll('a.start-screen-link')[3];
-      await link.trigger('pointerdown', {pointerType: 'touch'});
-      const first = new MouseEvent('click', {bubbles: true, cancelable: true});
-      link.element.dispatchEvent(first);
-      vi.advanceTimersByTime(100);
-      const second = new MouseEvent('click', {bubbles: true, cancelable: true});
-      link.element.dispatchEvent(second);
-      expect(first.defaultPrevented).to.be.true;
-      expect(second.defaultPrevented).to.be.false;
-      vi.advanceTimersByTime(400);
-      await wrapper.vm.$nextTick();
-      expect(link.classes()).not.to.include('start-screen-link--active');
-    } finally {
-      vi.useRealTimers();
-    }
+  it('still highlights on mouse hover', async () => {
+    const wrapper = shallowMount(StartScreen, {...globalConfig});
+    const link = wrapper.findAll('a.start-screen-link')[3];
+    await link.trigger('pointerenter', {pointerType: 'mouse'});
+    expect(link.classes()).to.include('start-screen-link--active');
+    await link.trigger('pointerleave', {pointerType: 'mouse'});
+    expect(link.classes()).not.to.include('start-screen-link--active');
   });
 });
