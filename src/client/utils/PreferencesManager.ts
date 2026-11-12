@@ -1,5 +1,6 @@
 import {reactive} from 'vue';
 import {safeLocalStorage} from '@/client/utils/SafeLocalStorage';
+import {browserLanguage} from '@/client/utils/browserLanguage';
 
 export type Preferences = {
   learner_mode: boolean,
@@ -94,11 +95,20 @@ export class PreferencesManager {
     for (const removed of REMOVED_PREFERENCES) {
       safeLocalStorage.removeItem(removed);
     }
+    let hasStoredLanguage = false;
     for (const key of Object.keys(defaults) as Array<Preference>) {
       const value = safeLocalStorage.getItem(key);
       if (value) {
+        if (key === 'lang') {
+          hasStoredLanguage = true;
+        }
         this._set(key, value);
       }
+    }
+    // A language chosen by the player stays authoritative. Until then, follow the browser.
+    // The detected language is deliberately not stored: a later browser change still applies.
+    if (!hasStoredLanguage) {
+      this._values.lang = browserLanguage();
     }
   }
 
