@@ -24,6 +24,11 @@ describe('MobilePlayerHome', () => {
     expect(wrapper.classes()).to.include('mb-home--mars');
   });
 
+  it('hides the global status bar during the initial selection', () => {
+    const wrapper = mountHome();
+    expect(wrapper.find('.mb-top').exists()).to.be.false;
+  });
+
   it('switches screens from the navigation', async () => {
     const wrapper = mountHome();
     await wrapper.find('.mb-nav-item--log').trigger('click');
