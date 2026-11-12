@@ -2,8 +2,9 @@
   <section class="mb-screen mb-screen--mars">
     <!-- Mars screen of the mobile view (players and spectators): board tabs with Mars and the parameters as bars in the Mars tab,
          then milestones etc. Comment inside so the caller's v-show hits the root -->
-    <!-- Language, game details, help, settings: the same buttons as on desktop, here as a bar at the top -->
-    <Sidebar class="mb-toolbar"
+    <!-- Language, game details, help, settings: the same buttons as on desktop, here as a bar at the top.
+         The player view replaced this bar with the resource bar (settings included); spectators keep it. -->
+    <Sidebar v-if="showToolbar" class="mb-toolbar"
       :playerColor="viewerColor ?? 'neutral'"
       :coloniesCount="game.colonies.length"
       :temperature="game.temperature"
@@ -76,7 +77,7 @@ import GameOverNotice from '@/client/components/gameend/GameOverNotice.vue';
 import Sidebar from '@/client/components/Sidebar.vue';
 import MobileParameterBars from '@/client/components/mobile/MobileParameterBars.vue';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   game: GameModel;
   players: ReadonlyArray<PublicPlayerModel>;
   participantId: ParticipantId;
@@ -85,7 +86,9 @@ const props = defineProps<{
   bannerTitle: string;
   // Own player's color; spectators have none
   viewerColor?: Color;
-}>();
+  // Player view: the global resource bar carries settings and resources instead
+  showToolbar?: boolean;
+}>(), {showToolbar: true});
 
 const emit = defineEmits<{
   (e: 'toggleTileView'): void;
