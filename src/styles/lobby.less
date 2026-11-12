@@ -1851,11 +1851,25 @@ each(@players, {
 // ---------- "Create game" as modal ----------
 .lobby-create-overlay {
   .modal-backdrop();
+  // The blur sits on a fixed layer of its own. backdrop-filter on the overlay would make it the
+  // containing block of the fixed Create button inside the form, so the button would scroll with it.
+  background: transparent;
+  backdrop-filter: none;
   position: fixed;
   inset: 0;
   z-index: @modal-z-index;
   overflow-y: auto;
   overscroll-behavior: contain;
+
+  &::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: @modal-backdrop-color;
+    backdrop-filter: blur(@modal-backdrop-blur);
+    pointer-events: none;
+  }
 }
 
 .create-game--lobby {
