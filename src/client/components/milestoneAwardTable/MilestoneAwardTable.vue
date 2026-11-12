@@ -25,11 +25,11 @@
       <div class="ma-table-row ma-table-head">
         <template v-if="hasNames(part)"><div></div><div class="ma-table-divider"></div></template>
         <template v-if="hasValues(part)">
-          <div v-for="milestone in milestones" :key="milestone.name" :class="headCellClasses(milestoneClosed(milestone))" v-glass-tooltip="tooltip(milestone.name, milestoneDescription(milestone))" :data-test="'milestone-' + milestone.name">
+          <div v-for="milestone in milestones" :key="milestone.name" :class="headCellClasses(milestoneClosed(milestone))" v-glass-tooltip="milestoneTooltip(milestone)" :data-test="'milestone-' + milestone.name">
             <MilestoneAwardIcon :parts="milestoneIcon(milestone)" :requirement="milestone.threshold" />
           </div>
           <div class="ma-table-divider"></div>
-          <div v-for="award in awards" :key="award.name" :class="headCellClasses(awardClosed(award))" v-glass-tooltip="tooltip(award.name, awardDescription(award))" :data-test="'award-' + award.name">
+          <div v-for="award in awards" :key="award.name" :class="headCellClasses(awardClosed(award))" v-glass-tooltip="awardTooltip(award)" :data-test="'award-' + award.name">
             <MilestoneAwardIcon :parts="awardIcon(award)" />
           </div>
         </template>
@@ -79,10 +79,10 @@ import {PublicPlayerModel} from '@/common/models/PlayerModel';
 import {ClaimedMilestoneModel} from '@/common/models/ClaimedMilestoneModel';
 import {FundedAwardModel} from '@/common/models/FundedAwardModel';
 import {AWARD_COSTS, MAX_AWARDS, MAX_MILESTONES, MILESTONE_COST} from '@/common/constants';
-import {getAward, getMilestone} from '@/client/MilestoneAwardManifest';
 import MilestoneAwardIcon from '@/client/components/milestoneAwardTable/MilestoneAwardIcon.vue';
 import MilestoneAwardOwner from '@/client/components/milestoneAwardTable/MilestoneAwardOwner.vue';
 import {AWARD_ICONS, IconPart, MILESTONE_ICONS} from '@/client/components/milestoneAwardTable/milestoneAwardIcons';
+import {awardTooltip as awardTooltipText, milestoneTooltip as milestoneTooltipText} from '@/client/components/milestoneAwardTable/milestoneAwardTooltips';
 import {scoreRanks} from '@/client/components/milestoneAwardTable/scoreRanks';
 import {playersInTurnOrder} from '@/client/utils/playersInTurnOrder';
 import {glassTooltip} from '@/client/directives/GlassTooltip';
@@ -219,11 +219,11 @@ export default defineComponent({
     awardIcon(award: FundedAwardModel): ReadonlyArray<IconPart> {
       return AWARD_ICONS[award.name] ?? [];
     },
-    milestoneDescription(milestone: ClaimedMilestoneModel): string {
-      return getMilestone(milestone.name)?.description ?? '';
+    milestoneTooltip(milestone: ClaimedMilestoneModel): string {
+      return milestoneTooltipText(milestone.name);
     },
-    awardDescription(award: FundedAwardModel): string {
-      return getAward(award.name)?.description ?? '';
+    awardTooltip(award: FundedAwardModel): string {
+      return awardTooltipText(award.name);
     },
     // All slots taken: the remaining ones can no longer be chosen and recede
     milestoneClosed(milestone: ClaimedMilestoneModel): boolean {
@@ -234,9 +234,6 @@ export default defineComponent({
     },
     headCellClasses(closed: boolean): Array<string> {
       return closed ? ['ma-table-cell', 'ma-table-cell--closed'] : ['ma-table-cell'];
-    },
-    tooltip(name: string, description: string): string {
-      return `${this.$t(name)}: ${this.$t(description)}`;
     },
     // Without values (milestone claimed or all slots taken) the cell stays empty
     scoreOf(scores: ReadonlyArray<Score>, player: PublicPlayerModel): number | string {

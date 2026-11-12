@@ -1,5 +1,5 @@
 <template>
-  <div id="player-home" :class="{'with-turmoil': game.turmoil, 'player-home--acting': isPlayerActing(playerView), 'player-home--fixed': usesFixedLayout}">
+  <div id="player-home" :class="{'with-turmoil': game.turmoil, 'player-home--acting': isPlayerActing(playerView), 'player-home--fixed': usesFixedLayout, 'player-home--setup': isSetupPhase}">
     <!-- player-home--acting: red frame around the viewport while this player is taking their turn (active_player_outline.less).
          Comment deliberately inside the root, otherwise the component would have two root nodes ($el would not be an element) -->
     <TopBar :playerView="playerView" />
@@ -34,6 +34,7 @@
               :tileView="tileView"
               :players="playerView.players"
               :viewerColor="playerView.thisPlayer.color"
+              :compactMilestones="isSetupPhase"
               @toggleTileView="cycleTileView()"
             />
             <!-- Game end: message above Mars, then automatically to the results page -->

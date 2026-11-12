@@ -146,9 +146,14 @@
     zoom: var(--board-fit-zoom, 1);
   }
 
-  // Milestones & awards live as a tab in the log box (LogPanel.vue), not below Mars
+  // Milestones & awards live as a tab in the log box (LogPanel.vue), not below Mars.
   .player-home-columns__mars .player_home_block--milestones-and-awards {
     display: none;
+  }
+
+  // Initial selection: the log (and with it its milestones tab) is hidden, so show the compact summary under Mars.
+  .player-home--setup .player-home-columns__mars .player_home_block--milestones-and-awards {
+    display: block;
   }
 
   // Levels depending on free height (set by rightColumnFit.ts):
