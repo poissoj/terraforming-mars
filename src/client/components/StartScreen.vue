@@ -39,7 +39,6 @@
         </span>
       </a>
     </div>
-    <StartScreenUpdates />
   </div>
 </template>
 
@@ -55,7 +54,6 @@ import {PLANET_STRIPES} from '@/client/components/startScreen/planetStripes';
 import {SITE_LINKS} from '@/client/components/startScreen/siteLinks';
 import PageToolbar from '@/client/components/PageToolbar.vue';
 import MobileGlyph from '@/client/components/mobile/MobileGlyph.vue';
-import StartScreenUpdates from '@/client/components/startScreen/StartScreenUpdates.vue';
 import {prefersReducedMotion} from '@/client/utils/motion';
 import {serverName as readServerName} from '@/client/utils/serverIdentity';
 
