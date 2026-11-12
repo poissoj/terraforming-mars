@@ -1713,3 +1713,12 @@ a.create-game-summary-chip:hover {
 .create-game-board-preview .hide-tile-button-container {
   display: none;
 }
+
+// One column: the map labels stick out far on some boards (Elysium, Vastitas Borealis, Terra Cimmeria …).
+// ScaledBoard would shrink those boards to keep the labels inside, so the same card showed different planet
+// sizes. The labels are barely readable at this width anyway; without them every board gets the same size.
+@media only screen and (max-width: @create-game-narrow) {
+  .create-game-board-preview .board-caption {
+    display: none;
+  }
+}
