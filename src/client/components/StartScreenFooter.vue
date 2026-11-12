@@ -22,7 +22,7 @@ const shortCommit = settings.head.slice(0, 7);
 const commitUrl = `${FORK_REPOSITORY_URL}/commit/${settings.head}`;
 
 const repositories = [
-  {label: 'Fork', name: 'wrybit', url: FORK_REPOSITORY_URL},
+  {label: 'Fork', name: 'poissoj', url: FORK_REPOSITORY_URL},
   {label: 'Original', name: 'terraforming-mars', url: UPSTREAM_REPOSITORY_URL},
 ];
 </script>

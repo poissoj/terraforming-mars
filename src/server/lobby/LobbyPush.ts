@@ -27,7 +27,7 @@ const webPushSender: PushSender = async (subscription, message, vapid) => {
   try {
     await webpush.sendNotification(subscription, JSON.stringify(message), {
       // The push services need a contact; the address of the project is enough
-      vapidDetails: {subject: process.env.LOBBY_PUSH_SUBJECT ?? 'https://github.com/wrybit/terraforming-mars', ...vapid},
+      vapidDetails: {subject: process.env.LOBBY_PUSH_SUBJECT ?? 'https://github.com/poissoj/terraforming-mars', ...vapid},
       // A join is only interesting for a while
       TTL: 30 * 60,
       urgency: 'high',
