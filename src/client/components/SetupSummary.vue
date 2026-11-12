@@ -2,7 +2,7 @@
   <!-- Balance of the start selection as a key-figure bar (setup_summary.less): what remains of the starting capital after
        preludes and card purchase, next to it the status (what is still missing). Values without a chosen corporation as a dash.
        On the right of the card the slot for the start button. -->
-  <div class="setup-summary">
+  <div class="setup-summary" :class="{'setup-summary--ready': statusReady}">
     <dl class="setup-summary-values">
       <div class="setup-summary-item">
         <dt>{{ $t('Starting M€') }}</dt>
@@ -13,7 +13,7 @@
         <dd>{{ signed(preludeMegacredits) }}</dd>
       </div>
       <div class="setup-summary-item">
-        <dt>{{ $t('Purchase') }} ({{ purchasedCount }} × {{ cardCost }})</dt>
+        <dt>{{ $t('Purchase') }}<span class="setup-summary-purchase-detail"> ({{ purchasedCount }} × {{ cardCost }})</span></dt>
         <!-- Red if the purchase exceeds the starting capital: cards are paid before the preludes take effect -->
         <dd :class="{'setup-summary-value--negative': startMegacredits !== undefined && purchasedCount * cardCost > startMegacredits}">
           {{ signed(-purchasedCount * cardCost) }}

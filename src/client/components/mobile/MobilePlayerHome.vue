@@ -5,7 +5,7 @@
          "Turn" opens the action menu as a sheet; inside a task the footer bar becomes the task bar
          (Cancel + Confirm/Pay for the input). -->
 
-    <MobileHeader :game="game" @click="go('players')" :aria-label="$t('Players')">
+    <MobileHeader v-if="!isSetupPhase" :game="game" @click="go('players')" :aria-label="$t('Players')">
       <span class="mb-top-money">
         <i class="resource_icon resource_icon--megacredits"></i>
         <b>{{ thisPlayer.megacredits }}</b>

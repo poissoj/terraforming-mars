@@ -118,6 +118,13 @@ html.tm-mobile {
     line-height: 1.35;
   }
 
+  // Initial selection: no global status bar, only the safe area stays at the top. The compact balance bar
+  // at the bottom is the footer, so the content keeps its height instead of scrolling underneath it.
+  #player-home.mb-home.mb-home--setup {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: calc(max(@mb-nav-height, var(--mb-footer-height, 0px)) + 12px + env(safe-area-inset-bottom));
+  }
+
   // ---------- Status bar ----------
   .mb-top {
     position: fixed;
@@ -1089,6 +1096,18 @@ html.tm-mobile {
     border-bottom: 1px solid @mb-line;
   }
 
+  // The steps stay visible while the cards scroll. .mb-screen--turn must not become the scroll container
+  // (overflow-x: hidden would): clip keeps the page as the sticky reference.
+  .mb-home--setup .mb-screen--turn {
+    overflow-x: clip;
+  }
+
+  .mb-home--setup .mb-steps {
+    position: sticky;
+    top: env(safe-area-inset-top);
+    z-index: 10;
+  }
+
   .mb-step {
     display: flex;
     flex-direction: column;
@@ -1155,6 +1174,13 @@ html.tm-mobile {
     display: block !important;
   }
 
+  // The desktop minimum of two cards is wider than a phone. The card fitting script scales the
+  // project cards to the column, so it only needs to be allowed to take the full screen width.
+  .mb-home--setup .setup-column--projects {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .mb-home--setup .setup-column-head .setup-column-title-row {
     display: none;
   }
@@ -1167,12 +1193,12 @@ html.tm-mobile {
     bottom: 0;
     z-index: 22;
     margin: 0;
-    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
     border-top: 1px solid @mb-line;
     border-radius: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     .mb-bar-surface();
   }
 
@@ -1180,42 +1206,65 @@ html.tm-mobile {
     display: none;
   }
 
-  // Compact summary as in the mockup: four values in a 2-column grid, below them status and button at full width
+  // One compact row for the four figures: unlike the 2 × 2 grid it leaves the cards most of the height.
+  // Items keep their content width and the gaps absorb the rest, so left and right margins stay balanced.
   .mb-home--setup .setup-summary-values {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px clamp(12px, 4vw, 28px);
     width: 100%;
     max-width: none;
     margin: 0;
   }
 
   .mb-home--setup .setup-summary-item {
+    flex: 0 1 auto;
+    min-width: 0;
     margin: 0;
-    padding: 6px 8px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.04);
+    padding: 0;
 
     dt {
-      font-size: 10px;
-      letter-spacing: 0.06em;
+      font-size: 9px;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       color: @mb-muted;
     }
 
     dd {
       margin: 0;
-      font-size: 16px;
+      font-size: 15px;
     }
   }
 
+  // The details of the purchase cannot fit in the narrow row; the amount is what matters here.
+  .mb-home--setup .setup-summary-purchase-detail {
+    display: none;
+  }
+
+  // A ready state needs no extra status row; warnings still get one.
   .mb-home--setup .setup-summary-item--status {
-    grid-column: 1 / -1;
+    flex-basis: 100%;
     display: flex;
     align-items: baseline;
-    gap: 8px;
-    background: none;
+    gap: 6px;
     padding: 0 2px;
+
+    // The warning text explains itself; the "Status" label would only cost another line here.
+    dt {
+      display: none;
+    }
+  }
+
+  .mb-home--setup .setup-summary--ready .setup-summary-item--status {
+    display: none;
+  }
+
+  .mb-home--setup .setup-summary-coin {
+    min-width: 26px;
+    height: 26px;
+    line-height: 26px;
+    font-size: 16px;
   }
 
   .mb-home--setup .setup-summary-actions {
@@ -1224,7 +1273,7 @@ html.tm-mobile {
     > *,
     .btn {
       width: 100%;
-      height: 48px;
+      height: 44px;
       margin: 0;
     }
   }
@@ -1240,7 +1289,7 @@ html.tm-mobile {
     right: 12px;
     bottom: calc(10px + env(safe-area-inset-bottom));
     z-index: 23;
-    height: 48px;
+    height: 44px;
     margin: 0 !important;
   }
 
