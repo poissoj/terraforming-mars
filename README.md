@@ -1,10 +1,10 @@
 # Terraforming Mars – UI Redesign
 
-A fork of [terraforming-mars/terraforming-mars](https://github.com/terraforming-mars/terraforming-mars) that reworks only the **player view UI**. Game logic and cards are unchanged.
+This repository is a fork of [wrybit/terraforming-mars](https://github.com/wrybit/terraforming-mars), the UI-redesign fork of Terraforming Mars. That project is itself a fork of the original [terraforming-mars/terraforming-mars](https://github.com/terraforming-mars/terraforming-mars). The UI changes described below come from wrybit's fork; game logic and cards remain those of the original project.
 
-**Showcase Gallery: [tm.baiz.org/showcase-gallery](https://tm.baiz.org/showcase-gallery/)** – screenshots of about 80 views, each on desktop, tablet and phone. See what the fork looks like before you install it.
+**Showcase Gallery: [tm.baiz.org/showcase-gallery](https://tm.baiz.org/showcase-gallery/)** – screenshots of about 80 views, each on desktop, tablet and phone. See what the wrybit UI looks like before you install this fork.
 
-Changes from the original are merged regularly. Afterwards the affected screenshots in the Showcase Gallery are updated automatically.
+Changes from `wrybit/terraforming-mars` are merged regularly; wrybit in turn follows the original project. Afterwards the affected screenshots in the Showcase Gallery are updated automatically.
 
 ### What changes
 
@@ -79,6 +79,7 @@ English UI. Desktop at 1920 px width, mobile on a 390 px phone.
 
 ## Original and legal
 
+- UI redesign: [wrybit/terraforming-mars](https://github.com/wrybit/terraforming-mars), the fork this repository is based on.
 - Game rules, cards, community and how to play: see the original [terraforming-mars/terraforming-mars](https://github.com/terraforming-mars/terraforming-mars) and [its wiki](https://github.com/terraforming-mars/terraforming-mars/wiki).
 - Not affiliated with FryxGames, Asmodee Digital or Steam. The board game is great – please buy it.
 
@@ -87,7 +88,7 @@ English UI. Desktop at 1920 px width, mobile on a 390 px phone.
 Requirements: Git and [Node.js](https://nodejs.org/) 26 (see `.nvmrc`). No database server needed – games are stored in `db/game.db` (SQLite).
 
 ```bash
-git clone https://github.com/wrybit/terraforming-mars.git
+git clone https://github.com/poissoj/terraforming-mars.git
 cd terraforming-mars
 npm ci             # install dependencies
 npm run build      # takes a few minutes
