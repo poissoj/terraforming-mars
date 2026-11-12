@@ -15,6 +15,8 @@ describe('SetupSummary', () => {
     });
     expect(values(wrapper)).deep.eq(['42', '+30', '−6', '66', 'Ready to start']);
     expect(wrapper.find('.setup-summary-status--ready').exists()).is.true;
+    expect(wrapper.find('.setup-summary--ready').exists()).is.true;
+    expect(wrapper.find('.setup-summary-purchase-detail').text()).eq('(2 × 3)');
   });
 
   it('shows dashes without corporation and hides preludes without the expansion', () => {
