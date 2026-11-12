@@ -18,6 +18,7 @@
 @mb-heat: #b8461f;
 @mb-danger: #8e2a22;
 @mb-top-height: 52px;
+@mb-gamebar-height: 46px;
 @mb-nav-height: 68px;
 @mb-screen-width-max: 1400px;
 // Tablet landscape (also wide windows in landscape): Mars next to the bars, player tables horizontal like on desktop.
@@ -125,6 +126,11 @@ html.tm-mobile {
     padding-bottom: calc(max(@mb-nav-height, var(--mb-footer-height, 0px)) + 12px + env(safe-area-inset-bottom));
   }
 
+  // In game: the resource bar sits below the fixed status bar and stays visible on every screen.
+  #player-home.mb-home:not(.mb-home--setup) {
+    padding-top: calc(@mb-top-height + @mb-gamebar-height + env(safe-area-inset-top));
+  }
+
   // ---------- Status bar ----------
   .mb-top {
     position: fixed;
@@ -184,26 +190,104 @@ html.tm-mobile {
     }
   }
 
-  .mb-top-money {
-    margin-left: auto;
+  // ---------- Resource and settings bar (player view, all screens) ----------
+  .mb-gamebar {
+    position: fixed;
+    top: calc(@mb-top-height + env(safe-area-inset-top));
+    left: 0;
+    right: 0;
+    z-index: 21;
+    height: @mb-gamebar-height;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 3px;
+    padding: 0 8px;
+    border-bottom: 1px solid @mb-line;
+    .mb-bar-surface();
+    box-shadow: @mb-bar-shadow-down;
+  }
+
+  .mb-resource {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
     font-family: Prototype, sans-serif;
+    white-space: nowrap;
 
     .resource_icon {
-      zoom: 0.6;
-      margin: 0;
+      flex: none;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .mb-resource-stock {
+    font-size: 14px;
+    font-weight: normal;
+  }
+
+  .mb-resource-production {
+    font-size: 10px;
+    color: @mb-muted;
+  }
+
+  .mb-settings-trigger {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 8px;
+    background: rgba(40, 42, 54, 0.6);
+    cursor: pointer;
+
+    .sidebar_icon {
+      display: block;
+      width: 22px;
+      height: 22px;
+      margin: 0 auto;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+  }
+
+  // The settings menu that replaces the old language/info/help buttons in the bar.
+  .mb-settings-menu {
+    display: flex;
+    flex-direction: column;
+    min-width: 220px;
+    padding: 4px;
+  }
+
+  .mb-settings-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: @mb-text;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
     }
 
-    b {
-      font-size: 22px;
-      font-weight: normal;
-    }
-
-    small {
-      font-size: 14px;
-      color: @mb-muted;
+    .sidebar_icon {
+      flex: none;
+      width: 26px;
+      height: 26px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
     }
   }
 
@@ -230,11 +314,9 @@ html.tm-mobile {
       display: none;
     }
 
-    // Status: cube and pile sizes side by side
+    // No cube or draw/discard pile counts in the mobile bar; the resource bar carries the own stock.
     .sidebar-status {
-      order: 1;
-      column-gap: 10px;
-      padding-left: 2px;
+      display: none;
     }
 
     // Right group set apart: starts with the language (margin in the language rule below)
@@ -1008,6 +1090,11 @@ html.tm-mobile {
     }
   }
 
+  // Played cards overlay (OtherPlayer.vue): start below the player's resource bar as well.
+  #player-home .mb-screen--players .other_player_panel {
+    top: calc(@mb-top-height + @mb-gamebar-height + env(safe-area-inset-top));
+  }
+
   // ---------- Log ----------
   .mb-screen--log {
     // clip instead of hidden: hidden would make the screen a scroll box and the sticky tabs would stick to it, not to the page
@@ -1028,6 +1115,11 @@ html.tm-mobile {
       position: fixed;
       right: 16px;
       bottom: calc(@mb-nav-height + 12px + env(safe-area-inset-bottom));
+    }
+
+    // Player view: the resource bar sits above the sticky generation tabs.
+    #player-home & .log-generations {
+      top: calc(@mb-top-height + @mb-gamebar-height + env(safe-area-inset-top));
     }
 
     .log-container,
