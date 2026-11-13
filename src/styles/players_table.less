@@ -202,8 +202,57 @@
   bottom: 0;
 }
 
+// Still one line, but a little smaller: at 1600px the main column is ~910px wide, so the
+// full-size line would squeeze the goods boxes. Keep the compact line rather than losing height.
+@container players-table (min-width: 1100px) and (max-width: 1299px) {
+  .players-table-head,
+  .players-table-rows {
+    --players-table-scale: .9;
+  }
+}
+
+@container players-table (min-width: 1000px) and (max-width: 1099px) {
+  .players-table-head,
+  .players-table-rows {
+    --players-table-scale: .82;
+  }
+
+  .players-table-head,
+  .players-table-row {
+    --players-table-cell-gap: 4px;
+    --players-table-section-gap: 11px;
+  }
+}
+
+@container players-table (min-width: 900px) and (max-width: 999px) {
+  .players-table-head,
+  .players-table-rows {
+    --players-table-scale: .74;
+  }
+
+  .players-table-head,
+  .players-table-row {
+    --players-table-cell-gap: 3px;
+    --players-table-section-gap: 8px;
+  }
+}
+
+// The two-column layout starts at 1400px, where the table is ~790px wide: keep it on one line there too.
+@container players-table (min-width: 780px) and (max-width: 899px) {
+  .players-table-head,
+  .players-table-rows {
+    --players-table-scale: .66;
+  }
+
+  .players-table-head,
+  .players-table-row {
+    --players-table-cell-gap: 3px;
+    --players-table-section-gap: 6px;
+  }
+}
+
 // Narrower: name + score above goods + tags (the header keeps only goods + tags)
-@container players-table (max-width: 1099px) {
+@container players-table (max-width: 779px) {
   .players-table-head,
   .players-table-rows {
     --players-table-scale: .94;
