@@ -575,6 +575,33 @@ each(@players, {
   text-align: center;
 }
 
+// Start phase: the three prices per row fit on one line even in the narrower board column.
+.player-home--setup .player_home_block--milestones-and-awards {
+  .ma-title {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    white-space: nowrap;
+  }
+
+  .ma-clickable,
+  .milestone-award-inline {
+    flex: none;
+  }
+
+  .milestone-award-inline.unpaid {
+    width: auto;
+    min-width: 34px;
+    margin: 0 2px;
+    padding: 1px 4px;
+  }
+
+  .milestone-award-price {
+    margin: 0 auto;
+    transform: scale(0.75);
+  }
+}
+
 .player_home_block--setup {
   .wf-action {
     margin: 20px 0 40px;

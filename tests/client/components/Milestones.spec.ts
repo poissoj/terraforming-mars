@@ -49,6 +49,21 @@ describe('Milestones', () => {
     ).to.be.true;
   });
 
+  it('shows descriptions by default and hides player scores in the start phase', () => {
+    const milestone = mount(Milestones, {
+      ...globalConfig,
+      props: {
+        milestones: [mockMilestone],
+        showDescriptionDefault: true,
+        showScores: false,
+        preferences: {show_milestone_details: true} as Readonly<Preferences>,
+      },
+    });
+
+    expect(milestone.find('.ma-description').exists()).to.be.true;
+    expect(milestone.find('.ma-scores').exists()).to.be.false;
+  });
+
   it('milestones hide details if previously set to hide details', async () => {
     const milestone = mount(Milestones, {
       ...globalConfig,

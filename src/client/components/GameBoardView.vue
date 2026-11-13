@@ -58,14 +58,10 @@
   </BoardZoomModal>
 
   <div v-if="players.length > 1" class="player_home_block--milestones-and-awards">
-    <!-- Start phase: only the names and icons; costs and player scores would be noise while choosing cards. -->
-    <MilestoneAwardSummary v-if="compactMilestones" :milestones="game.milestones" :awards="game.awards" />
-    <template v-else>
-      <Milestones :milestones="game.milestones" />
-      <Awards :awards="game.awards" />
-      <!-- The same data as a table; only visible in the two-column layout (milestone_award_table.less) -->
-      <MilestoneAwardTable :milestones="game.milestones" :awards="game.awards" :players="players" :viewerColor="viewerColor" />
-    </template>
+    <Milestones :milestones="game.milestones" :showScores="!setupPhase" :showDescriptionDefault="setupPhase" />
+    <Awards :awards="game.awards" :showScores="!setupPhase" :showDescriptionDefault="setupPhase" />
+    <!-- The same data as a table; only visible in the two-column layout (milestone_award_table.less) -->
+    <MilestoneAwardTable :milestones="game.milestones" :awards="game.awards" :players="players" :viewerColor="viewerColor" />
   </div>
 </template>
 
@@ -94,7 +90,6 @@ import DeltaBoard from '@/client/components/delta/DeltaBoard.vue';
 import Milestones from '@/client/components/Milestones.vue';
 import Awards from '@/client/components/Awards.vue';
 import MilestoneAwardTable from '@/client/components/milestoneAwardTable/MilestoneAwardTable.vue';
-import MilestoneAwardSummary from '@/client/components/milestoneAwardTable/MilestoneAwardSummary.vue';
 import TurmoilBoard from '@/client/components/turmoil/TurmoilBoard.vue';
 import MoonBoard from '@/client/components/moon/MoonBoard.vue';
 import PlanetsBoard from '@/client/components/pathfinders/PlanetsBoard.vue';
@@ -121,8 +116,8 @@ export default defineComponent({
       type: String as PropType<Color | undefined>,
       default: undefined,
     },
-    // Start phase: show only which milestones and awards are in the game
-    compactMilestones: {
+    // Initial selection: no player scores yet, and the descriptions explain the goal before the game starts.
+    setupPhase: {
       type: Boolean,
       default: false,
     },
@@ -152,7 +147,6 @@ export default defineComponent({
     Milestones,
     Awards,
     MilestoneAwardTable,
-    MilestoneAwardSummary,
     TurmoilBoard,
     MoonBoard,
     PlanetsBoard,

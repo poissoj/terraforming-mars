@@ -73,6 +73,21 @@ describe('Awards', () => {
     ).to.be.true;
   });
 
+  it('shows descriptions by default and hides player scores in the start phase', () => {
+    const wrapper = mount(Awards, {
+      ...globalConfig,
+      props: {
+        awards: [createAward({id: 1, funded: true})],
+        showDescriptionDefault: true,
+        showScores: false,
+        preferences: {show_award_details: true} as Readonly<Preferences>,
+      },
+    });
+
+    expect(wrapper.find('.ma-description').exists()).to.be.true;
+    expect(wrapper.find('.ma-scores').exists()).to.be.false;
+  });
+
   it('award details are hidden if they were previously hidden', async () => {
     const awards = [
       createAward({id: 1, funded: true}),

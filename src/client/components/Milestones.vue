@@ -46,6 +46,11 @@ export default defineComponent({
       type: Boolean,
       default: true,
     },
+    // Start phase: explanations are visible without the player having to click the title.
+    showDescriptionDefault: {
+      type: Boolean,
+      default: false,
+    },
     preferences: {
       type: Object as () => Readonly<Preferences>,
       default: () => PreferencesManager.INSTANCE.values(),
@@ -54,7 +59,7 @@ export default defineComponent({
   data() {
     return {
       showMilestoneDetails: (this.milestones.filter((milestone) => milestone.playerName).length === MAX_MILESTONES ? false : this.preferences?.show_milestone_details),
-      showDescription: false,
+      showDescription: this.showDescriptionDefault,
     };
   },
   components: {

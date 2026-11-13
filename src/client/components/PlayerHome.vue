@@ -34,7 +34,7 @@
               :tileView="tileView"
               :players="playerView.players"
               :viewerColor="playerView.thisPlayer.color"
-              :compactMilestones="isSetupPhase"
+              :setupPhase="isSetupPhase"
               @toggleTileView="cycleTileView()"
             />
             <!-- Game end: message above Mars, then automatically to the results page -->
