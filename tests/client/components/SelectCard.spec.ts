@@ -144,6 +144,12 @@ describe('SelectCard', () => {
     expect(wrapper.find('.select-card-toolbar__select-all').exists()).is.true;
   });
 
+  it('hides the per-column zoom when the setup header provides the single slider', () => {
+    const wrapper = mountSelection(3, [], 'Buy', {showsave: false, selectAllAllowed: true, showZoom: false});
+    expect(wrapper.findComponent({name: 'CardZoomBar'}).exists()).is.false;
+    expect(wrapper.find('.select-card-toolbar__select-all').exists()).is.true;
+  });
+
   it('hides select all when only some cards may be chosen', () => {
     const wrapper = mountSelection(2, []);
     expect(wrapper.find('.select-card-toolbar__select-all').exists()).is.false;

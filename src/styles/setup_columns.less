@@ -152,8 +152,8 @@
   zoom: calc(var(--setup-project-cards-zoom) * var(--setup-user-zoom, 1));
 }
 
-// The zoom slider above each column (CardZoomBar.vue, cardZoom.ts) scales all cards on top of the steps here;
-// only on the desktop, the mobile view fits its cards to the screen itself
+// The shared zoom slider in the setup header (SetupTurnOrder.vue, cardZoom.ts) scales all cards on top of the
+// steps here; only on the desktop, the mobile view fits its cards to the screen itself
 html:not(.tm-mobile) .setup-columns {
   --setup-user-zoom: var(--card-zoom, 1);
 }

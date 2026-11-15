@@ -19,6 +19,11 @@ describe('SelectInitialCards', () => {
     savedData = undefined;
   });
 
+  it('leaves the card zoom to the single slider in the setup header', () => {
+    const component = createComponent([CardName.ECOLINE], [CardName.ANTS]);
+    expect(component.findAll('.card-zoom-slider')).has.length(0);
+  });
+
   it('saves data without prelude', async () => {
     const component = createComponent([CardName.ECOLINE], [CardName.ANTS]);
     expect(component).not.is.undefined;

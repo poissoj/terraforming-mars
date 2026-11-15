@@ -20,11 +20,12 @@
       </template>
     </CardFilterBar>
     <!-- Other card lists (buying, draft …): no filter, but the zoom in the same place as in every tab;
-             "Select all" only where it makes sense. Mobile: no zoom, only the "Select all" row -->
-    <div v-else-if="isMobile && showSelectAll" class="select-card-toolbar">
+             "Select all" only where it makes sense. Mobile: no zoom, only the "Select all" row.
+             The setup columns suppress the zoom because their single slider sits in the header. -->
+    <div v-else-if="showSelectAll && (isMobile || !showZoom)" class="select-card-toolbar">
       <AppButton hotkey="select-all" class="select-card-toolbar__select-all" size="small" @click="toggleSelectAll" :title="selectAllTitle" />
     </div>
-    <CardZoomBar v-else>
+    <CardZoomBar v-else-if="showZoom">
       <template v-if="showSelectAll" #lead>
         <AppButton hotkey="select-all" class="select-card-toolbar__select-all" size="small" @click="toggleSelectAll" :title="selectAllTitle" />
       </template>
@@ -173,6 +174,11 @@ export default defineComponent({
     selectAllAllowed: {
       type: Boolean,
       default: false,
+    },
+    // The setup columns share one slider in the header instead of showing one per column
+    showZoom: {
+      type: Boolean,
+      default: true,
     },
   },
   data(): WidgetDataModel {

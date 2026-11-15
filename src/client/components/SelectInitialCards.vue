@@ -21,7 +21,7 @@
         </header>
         <div class="setup-column-body">
           <template v-if="section.key === 'corporation'">
-            <SelectCard :playerView="playerView" :playerinput="corpCardOption" :showtitle="false" :onsave="noop" @cardschanged="corporationChanged" />
+            <SelectCard :playerView="playerView" :playerinput="corpCardOption" :showtitle="false" :showZoom="false" :onsave="noop" @cardschanged="corporationChanged" />
             <div v-if="playerCanChooseAridor" class="player_home_colony_cont">
               <div v-i18n>These are the colony tiles Aridor may choose from:</div>
               <div class="discarded-colonies-for-aridor">
@@ -31,9 +31,9 @@
               </div>
             </div>
           </template>
-          <SelectCard v-else-if="section.key === 'prelude'" :playerView="playerView" :playerinput="preludeCardOption" :onsave="noop" :showtitle="false" @cardschanged="preludesChanged" />
-          <SelectCard v-else-if="section.key === 'ceo'" :playerView="playerView" :playerinput="ceoCardOption" :onsave="noop" :showtitle="false" @cardschanged="ceosChanged" />
-          <SelectCard v-else :playerView="playerView" :playerinput="projectCardOption" :onsave="noop" :showtitle="false" :selectAllAllowed="true" @cardschanged="cardsChanged" />
+          <SelectCard v-else-if="section.key === 'prelude'" :playerView="playerView" :playerinput="preludeCardOption" :onsave="noop" :showtitle="false" :showZoom="false" @cardschanged="preludesChanged" />
+          <SelectCard v-else-if="section.key === 'ceo'" :playerView="playerView" :playerinput="ceoCardOption" :onsave="noop" :showtitle="false" :showZoom="false" @cardschanged="ceosChanged" />
+          <SelectCard v-else :playerView="playerView" :playerinput="projectCardOption" :onsave="noop" :showtitle="false" :showZoom="false" :selectAllAllowed="true" @cardschanged="cardsChanged" />
         </div>
       </section>
     </div>
