@@ -550,7 +550,7 @@
 // Short desktop windows: the regular spacing makes the start page scroll (1005px window height produces about
 // 118px of overflow). Compress the space above the menu and below to the footer; the title offset follows the
 // smaller top padding so the logo stays visible and the planet background keeps its 24px gap to the menu.
-@media @from-wide and (max-height: @start-screen-short-window-height) {
+@media (min-width: @bp-wide) and (max-height: @start-screen-short-window-height) {
   .start-screen {
     margin-bottom: 0;
   }
