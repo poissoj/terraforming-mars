@@ -17,14 +17,30 @@
   font-size: 24px;
 }
 
-.setup-turn-order-list {
+// Turn order and the single card-size slider for the setup columns share one row; the slider wraps
+// below the names when a desktop window is too narrow for both.
+.setup-turn-order-players {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  gap: 10px 20px;
+}
+
+.setup-turn-order-list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 10px 0;
+  min-width: 0;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.setup-turn-order-zoom {
+  flex: none;
+  margin-left: auto;
 }
 
 .setup-turn-order-player {
