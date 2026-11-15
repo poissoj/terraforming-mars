@@ -33,8 +33,11 @@
     <div class="lobby-game-action">
       <!-- The click reaches the entry anyway (opens the dialog there), so the button needs no handler of its own -->
       <AppButton v-if="isMine" title="Waiting room" :fixedHotkey="keys" />
-      <!-- Own running game: back into it instead of watching -->
-      <a v-else-if="continueLink !== undefined" class="btn btn-rounded btn-primary lobby-game-watch" :href="continueLink"><span v-i18n>Continue</span><HotkeyKeys :fixed="keys" /></a>
+      <!-- Own running game: back into it instead of watching; a solo game can also be deleted here -->
+      <div v-else-if="continueLink !== undefined" class="lobby-game-actions">
+        <a class="btn btn-rounded btn-primary lobby-game-watch" :href="continueLink"><span v-i18n>Continue</span><HotkeyKeys :fixed="keys" /></a>
+        <DeleteGameButton v-if="room.youCanDelete" class="lobby-game-delete" :isDeleting="isDeleting" @delete="emit('delete')" />
+      </div>
       <!-- Watching only fits a game in progress: a finished one shows its result -->
       <a v-else-if="room.state === 'started' && room.spectatorId" class="btn btn-rounded btn-tone-quiet lobby-game-watch" :href="appUrl('spectator?id=' + room.spectatorId)"><span v-i18n>{{ room.aiTraining?.finished === true ? 'Result' : 'Watch' }}</span><HotkeyKeys :fixed="keys" /></a>
       <!-- Declined by the host: no way in, said as plain information instead of a button that does nothing -->
@@ -56,6 +59,7 @@
 import {computed} from 'vue';
 import {LobbyRoomModel, LobbySeatModel} from '@/common/lobby/LobbyModel';
 import AppButton from '@/client/components/common/AppButton.vue';
+import DeleteGameButton from '@/client/components/admin/DeleteGameButton.vue';
 import HotkeyKeys from '@/client/components/hotkeys/HotkeyKeys.vue';
 import {HotkeyKeys as HotkeyKeyList, PICK_DIGITS} from '@/client/hotkeys/hotkeyActions';
 import GameSetupChips from '@/client/components/common/GameSetupChips.vue';
@@ -74,6 +78,7 @@ const props = defineProps<{
   room: LobbyRoomModel;
   // Position in the list: the first ten rows get Alt + 1 … 9, 0, handled by LobbyPage.vue
   position?: number;
+  isDeleting?: boolean;
 }>();
 
 const keys = computed<HotkeyKeyList>(() => props.position !== undefined && props.position < PICK_DIGITS.length ? ['Alt', PICK_DIGITS[props.position]] : []);
@@ -81,6 +86,7 @@ const keys = computed<HotkeyKeyList>(() => props.position !== undefined && props
 const emit = defineEmits<{
   (event: 'join'): void;
   (event: 'open-room'): void;
+  (event: 'delete'): void;
 }>();
 
 const isLiveTraining = computed(() => props.room.aiTraining !== undefined && !props.room.aiTraining.finished);

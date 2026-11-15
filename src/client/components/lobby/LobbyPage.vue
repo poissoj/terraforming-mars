@@ -69,7 +69,8 @@
           <section class="create-game-card lobby-list-card lobby-list">
             <div class="lobby-section-title"><span v-i18n>Running games</span><span class="lobby-section-count">{{ runningRooms.length }}</span></div>
             <div class="lobby-list-rows">
-              <LobbyGameRow v-for="room in runningRooms" :key="room.id" :room="room" :position="keyPosition(room)" />
+              <LobbyGameRow v-for="room in runningRooms" :key="room.id" :room="room" :position="keyPosition(room)"
+                :isDeleting="deletingRoomId === room.id" @delete="deleteSoloGame(room)" />
               <div v-if="runningRooms.length === 0 && loaded" class="lobby-empty">
                 <span v-i18n>No game is running right now.</span>
               </div>
@@ -195,6 +196,7 @@ const search = ref('');
 const filters = ref<LobbyFilters>(defaultLobbyFilters());
 const filtersOpen = ref(false);
 const roomOpen = ref(false);
+const deletingRoomId = ref<string | undefined>();
 const createOpen = ref(false);
 // Host: the waiting game opened in the create form to change it
 const editRoom = ref<LobbyEditRoom | undefined>();
@@ -368,6 +370,18 @@ async function act(action: LobbyRequest): Promise<LobbyRoomModel | undefined> {
     }
     await refresh();
     return undefined;
+  }
+}
+
+async function deleteSoloGame(room: LobbyRoomModel): Promise<void> {
+  if (room.youCanDelete !== true || deletingRoomId.value !== undefined) {
+    return;
+  }
+  deletingRoomId.value = room.id;
+  try {
+    await act({action: 'delete-solo', roomId: room.id});
+  } finally {
+    deletingRoomId.value = undefined;
   }
 }
 

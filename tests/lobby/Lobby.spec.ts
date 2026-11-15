@@ -66,6 +66,36 @@ describe('Lobby', () => {
     expect(lobby.list(OTHER).rooms).is.empty;
   });
 
+  it('lets only the sole human player delete a started solo game', async () => {
+    const deleted: Array<string> = [];
+    const room = await lobby.open(HOST, profile('Ann'), '', true, config(['human', 'ai']), starter);
+    const deleteGame = async (gameId: string) => {
+      deleted.push(gameId);
+    };
+
+    expect(room.youCanDelete).is.true;
+    expect(lobby.list(OTHER).rooms[0].youCanDelete).is.false;
+    expect(await lobby.deleteSoloGame(OTHER, room.id, deleteGame)).is.false;
+    expect(deleted).is.empty;
+
+    expect(await lobby.deleteSoloGame(HOST, room.id, deleteGame)).is.true;
+    expect(deleted).deep.eq(['g1']);
+    expect(lobby.list(HOST).rooms).is.empty;
+  });
+
+  it('does not let a game with another human be deleted as a solo game', async () => {
+    const room = await lobby.open(HOST, profile('Ann'), '', true, config(['human', 'human']), starter);
+    await lobby.join(GUEST, profile('Bob'), room.id, starter);
+    const deleted: Array<string> = [];
+
+    expect(lobby.list(HOST).rooms[0].youCanDelete).is.false;
+    expect(await lobby.deleteSoloGame(HOST, room.id, async (gameId) => {
+      deleted.push(gameId);
+    })).is.false;
+    expect(deleted).is.empty;
+    expect(lobby.list(HOST).rooms).has.length(1);
+  });
+
   describe('closes abandoned games', () => {
     let present: Set<string>;
     let begun: boolean | undefined;

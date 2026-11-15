@@ -1204,6 +1204,15 @@ each(@players, {
   }
 }
 
+// Own running game: Continue and, for a solo game, Delete side by side; wrap on narrow rows
+.lobby-game-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
 // With the chat sidebar the page itself does not scroll: header, cards and footer fit the window, and each of
 // the three cards (running, open, chat) scrolls on its own. The chain of flex boxes passes the height down.
 @media (min-width: @bp-desktop) {
