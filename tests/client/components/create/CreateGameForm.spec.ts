@@ -341,6 +341,14 @@ describe('CreateGameForm', () => {
     expect(wrapper.vm.aiPlayersCount).eq(0);
   });
 
+  it('deals three corporations and six preludes by default', () => {
+    const wrapper = shallowMount(CreateGameForm, {
+      ...globalConfig,
+    });
+    expect(wrapper.vm.startingCorporations).eq(3);
+    expect(wrapper.vm.startingPreludes).eq(6);
+  });
+
   it('does not restore saved settings when remember is off', async () => {
     PreferencesManager.INSTANCE.set('remember_create_game_settings', false);
     createGameSettingsStorage.save(createNewGameConfig());
@@ -504,6 +512,8 @@ describe('CreateGameForm', () => {
     await wrapper.vm.$nextTick();
 
     expect(wrapper.vm.boards).deep.eq([BoardName.THARSIS]);
+    expect(wrapper.vm.startingCorporations).eq(3);
+    expect(wrapper.vm.startingPreludes).eq(6);
     expect(wrapper.vm.draftVariant).eq(true);
     expect(createGameSettingsStorage.load()).eq(undefined);
     expect(wrapper.findAllComponents({name: 'AppButton'}).map((button) => button.props('title'))).includes('Reset');
@@ -586,9 +596,9 @@ describe('CreateGameForm', () => {
   });
 
   it('validates the form settings', () => {
-    // Default: 4 starting corporations per player, so two players need 8
-    expect(validateTwoPlayerGame((model) => model.customCorporations = cardNames(7)).notEnoughCorporations).eq(8);
-    expect(validateTwoPlayerGame((model) => model.customCorporations = cardNames(8)).notEnoughCorporations).eq(0);
+    // Default: 3 starting corporations per player, so two players need 6
+    expect(validateTwoPlayerGame((model) => model.customCorporations = cardNames(5)).notEnoughCorporations).eq(6);
+    expect(validateTwoPlayerGame((model) => model.customCorporations = cardNames(6)).notEnoughCorporations).eq(0);
   });
 
   it('ignores unknown colony names when validating', () => {
