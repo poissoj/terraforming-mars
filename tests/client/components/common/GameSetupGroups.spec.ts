@@ -8,7 +8,7 @@ import {GameOptionsModel} from '@/common/models/GameOptionsModel';
 import {RandomMAOptionType} from '@/common/ma/RandomMAOptionType';
 
 function gameOptions(options: Partial<GameOptionsModel>): GameOptionsModel {
-  return {startingCorporations: 4, startingPreludes: 4, startingCeos: 3, ...options} as GameOptionsModel;
+  return {startingCorporations: 3, startingPreludes: 6, startingCeos: 3, ...options} as GameOptionsModel;
 }
 
 describe('GameSetupGroups', () => {

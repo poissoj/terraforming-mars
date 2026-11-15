@@ -10,7 +10,7 @@ import {CardName} from '@/common/cards/CardName';
 
 // Options of a finished game as the server sends them; unset fields count as off
 function gameOptions(options: Partial<GameOptionsModel>): GameOptionsModel {
-  return {startingCorporations: 4, startingPreludes: 4, startingCeos: 3, ...options} as GameOptionsModel;
+  return {startingCorporations: 3, startingPreludes: 6, startingCeos: 3, ...options} as GameOptionsModel;
 }
 
 describe('GameSetupChips', () => {
