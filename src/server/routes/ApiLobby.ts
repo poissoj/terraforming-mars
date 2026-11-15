@@ -6,7 +6,7 @@ import {Response} from '../Response';
 import {readBody} from './readBody';
 import {RouteError} from './RouteError';
 import {ApiCreateGame} from './ApiCreateGame';
-import {GameStarter, Lobby} from '../lobby/Lobby';
+import {GameDeleter, GameStarter, Lobby} from '../lobby/Lobby';
 import {LobbyError} from '../lobby/lobbyValidation';
 import {lobbyGameProgress} from '../lobby/lobbyGameProbe';
 import {isParticipantId, LobbyAction} from '../../common/lobby/LobbyModel';
@@ -52,8 +52,9 @@ export class ApiLobby extends Handler {
       }
       return this.createGame.createGame(config, ctx);
     };
+    const deleteGame: GameDeleter = (gameId) => ctx.gameLoader.deleteGame(gameId, 'deleted-by-player');
     try {
-      responses.writeJson(res, ctx, await this.perform(action, starter));
+      responses.writeJson(res, ctx, await this.perform(action, starter, deleteGame));
     } catch (error) {
       if (error instanceof LobbyError) {
         throw RouteError.badRequest(error.message);
@@ -62,7 +63,7 @@ export class ApiLobby extends Handler {
     }
   }
 
-  private perform(action: LobbyAction, starter: GameStarter): Promise<object> {
+  private perform(action: LobbyAction, starter: GameStarter, deleteGame: GameDeleter): Promise<object> {
     switch (action.action) {
     case 'open':
       return this.lobby.open(action.me, action.profile, action.title, action.listed, action.config, starter, Array.isArray(action.freeSeats) ? action.freeSeats : []);
@@ -91,6 +92,8 @@ export class ApiLobby extends Handler {
       return this.lobby.fillWithAi(action.me, action.roomId, starter);
     case 'start':
       return this.lobby.startNow(action.me, action.roomId, starter);
+    case 'delete-solo':
+      return this.lobby.deleteSoloGame(action.me, action.roomId, deleteGame).then((deleted) => ({ deleted }));
     default:
       throw RouteError.badRequest('Unknown lobby action');
     }

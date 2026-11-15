@@ -62,6 +62,8 @@ const NO_NOTIFIER: LobbyNotifier = {canReach: () => false, notify: () => {}};
 
 /** Creates the game exactly as the create form would (ApiCreateGame.createGame) */
 export type GameStarter = (config: NewGameConfig) => Promise<StartedGame>;
+/** Removes a game from memory and the database (ApiLobby wires GameLoader.deleteGame) */
+export type GameDeleter = (gameId: GameId) => Promise<void>;
 
 type HumanSeat = {kind: 'human', participant: string, profile: LobbyProfile, ready: boolean, lastSeen: number};
 // Entered by the host by hand; always counts as ready
@@ -210,6 +212,31 @@ export class Lobby {
     if (rooms.length > 0) {
       this.save();
     }
+  }
+
+  /** The sole human player of a started game may remove it; shared games stay protected. */
+  private canDeleteSolo(room: Room, me: string): boolean {
+    const humans = room.seats.filter((seat) => seat.kind === 'human' || seat.kind === 'guest');
+    return room.state === 'started' &&
+      room.gameId !== undefined &&
+      room.host === me &&
+      (room.otherPlayerIds ?? []).length === 0 &&
+      humans.length === 1 &&
+      humans[0].kind === 'human' &&
+      humans[0].participant === me;
+  }
+
+  /** Host only: delete a started solo game from the lobby and the database. Returns false for shared games. */
+  public async deleteSoloGame(me: string, roomId: string, deleteGame: GameDeleter): Promise<boolean> {
+    this.ensureLoaded();
+    const room = this.rooms.get(roomId);
+    const gameId = room?.gameId;
+    if (room === undefined || gameId === undefined || !this.canDeleteSolo(room, me)) {
+      return false;
+    }
+    await deleteGame(gameId);
+    this.forgetGame(gameId);
+    return true;
   }
 
   /** The list with the progress of the running games (generation and terraforming come from the games themselves) */
@@ -701,6 +728,7 @@ export class Lobby {
         undefined,
       spectatorId: room.spectatorId,
       yourPlayerId: me === undefined ? undefined : room.playerIds[me],
+      youCanDelete: me === undefined ? undefined : this.canDeleteSolo(room, me),
     };
   }
 

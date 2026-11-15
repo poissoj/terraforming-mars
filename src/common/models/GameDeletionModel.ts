@@ -3,7 +3,8 @@
 // 'closed-unstarted': opened in the lobby, the creator left before anything happened and nobody else ever came
 // 'replaced-ai-training': a finished AI training game of the lobby, removed because a newer one took its place
 // 'removed-ai-only': a finished game without a human player, removed automatically (aiOnlyGames.ts)
-export type GameDeletionReason = 'deleted-in-admin-area' | 'purged-unfinished' | 'closed-unstarted' | 'replaced-ai-training' | 'removed-ai-only';
+// 'deleted-by-player': the sole human player removed their own solo game from the lobby
+export type GameDeletionReason = 'deleted-in-admin-area' | 'purged-unfinished' | 'closed-unstarted' | 'replaced-ai-training' | 'removed-ai-only' | 'deleted-by-player';
 
 export type GameDeletionModel =
   | {deleted: false}

@@ -32,6 +32,13 @@ export async function describeGameLoadFailure(id: string, err: unknown): Promise
   if (failure.kind === 'http' && failure.status === 404) {
     const deletion = await fetchDeletion(id);
     if (deletion.deleted) {
+      if (deletion.reason === 'deleted-by-player') {
+        return {
+          title: translateText('Game deleted'),
+          text: translateText('Its data no longer exists on this server, so the link no longer works.') + playersSentence(deletion.playerNames),
+          leadsToStartPage: true,
+        };
+      }
       const when = new Date(deletion.deletedAt).toLocaleString();
       const what = deletion.reason === 'purged-unfinished' ?
         translateTextWithParams('Game ${0} was removed automatically on ${1}: unfinished games are deleted after ${2} days.', [deletion.gameId, when, deletion.maxGameDays ?? '?']) :

@@ -76,6 +76,26 @@ describe('Lobby components', () => {
     expect(wrapper.find('.lobby-game-progress i').attributes('style')).contains('50%');
   });
 
+  it('LobbyGameRow lets a solo host delete the running game after confirming', async () => {
+    const solo = room([{...host, you: true}, {kind: 'ai', aiLevel: 'hard'}], {
+      state: 'started', yourPlayerId: 'p1', spectatorId: 's1', youCanDelete: true,
+      progress: {generation: 1, terraforming: 0, playedMs: 60_000},
+    });
+    const wrapper = mount(LobbyGameRow, {...globalConfig, props: {room: solo}});
+    const deleteButton = wrapper.find('.lobby-game-delete');
+    expect(deleteButton.exists()).is.true;
+
+    await deleteButton.trigger('click');
+    await deleteButton.trigger('click');
+    expect(wrapper.emitted('delete')).has.length(1);
+
+    const shared = room([{...host, you: true}, {...host, host: false}], {
+      state: 'started', yourPlayerId: 'p1', youCanDelete: false,
+      progress: {generation: 1, terraforming: 0, playedMs: 60_000},
+    });
+    expect(mount(LobbyGameRow, {...globalConfig, props: {room: shared}}).find('.lobby-game-delete').exists()).is.false;
+  });
+
   it('LobbyGameRow shows the time since the last human move only when the server sends it', () => {
     const progress = {generation: 3, terraforming: 0.1, playedMs: 30 * 60_000};
     const idle = mount(LobbyGameRow, {...globalConfig, props: {room: room([host], {state: 'started', progress: {...progress, idleMs: 12 * 60_000}})}});
