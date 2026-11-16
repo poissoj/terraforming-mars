@@ -3,14 +3,15 @@
     <div class="awards">
       <div class="ma-title">
         <a @click.prevent="toggleList" class="ma-clickable awards-padding" href="#" data-test="toggle-awards" v-i18n>Awards</a>
+        <!-- Funded: only the owner cube in the title row. The name, description and scores are in the tile below. -->
         <span
           v-for="award in fundedAwards"
           :key="award.name"
-          :title="award.playerName"
+          :title="award.name + ' — ' + award.playerName"
+          :aria-label="award.name"
           class="milestone-award-inline paid"
           data-test="funded-awards"
         >
-          <span v-i18n>{{ award.name }}</span>
           <span class="ma-player-cube">
             <BoardCube v-if="award.color !== undefined" class="board-cube" :color="award.color" view="slight" :data-test-player-cube="award.color" />
           </span>

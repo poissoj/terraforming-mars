@@ -3,6 +3,9 @@ import {expect} from 'chai';
 import {globalConfig} from '../getLocalVue';
 import LogPanel from '@/client/components/logpanel/LogPanel.vue';
 import LogMessageComponent from '@/client/components/logpanel/LogMessageComponent.vue';
+import Milestones from '@/client/components/Milestones.vue';
+import Awards from '@/client/components/Awards.vue';
+import MilestoneAwardTable from '@/client/components/milestoneAwardTable/MilestoneAwardTable.vue';
 import {fakePublicPlayerModel, fakeViewModel} from '../testHelpers';
 import {LogMessage} from '@/common/logs/LogMessage';
 import {LogMessageType} from '@/common/logs/LogMessageType';
@@ -326,6 +329,21 @@ describe('LogPanel', () => {
 
     expect(showsMilestonesAwards(wrapper)).is.true;
     expect(wrapper.find('.log-milestones').exists()).is.true;
+  });
+
+  it('shows the start page tiles with player scores and descriptions instead of the table', async () => {
+    const wrapper = mount(multiplayerViewModelAt(3), {milestonesAwards: true, acting: true});
+    await flush(wrapper);
+
+    const milestones = wrapper.findComponent(Milestones);
+    const awards = wrapper.findComponent(Awards);
+    expect(milestones.exists()).is.true;
+    expect(milestones.props('showScores')).is.true;
+    expect(milestones.props('showDescriptionDefault')).is.true;
+    expect(awards.exists()).is.true;
+    expect(awards.props('showScores')).is.true;
+    expect(awards.props('showDescriptionDefault')).is.true;
+    expect(wrapper.findComponent(MilestoneAwardTable).exists()).is.false;
   });
 
   it('opens on the current generation when it is not the player\'s turn', async () => {

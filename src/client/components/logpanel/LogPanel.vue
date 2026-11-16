@@ -4,14 +4,10 @@
     <template v-if="separatesMilestonesAwards">
       <div class="panel or-tab-panel or-tab-panel--tone-milestones log-panel--milestones log-milestones-box" role="region" :aria-label="milestonesAwardsTitle">
         <div class="log-milestones">
-          <MilestoneAwardTable :milestones="viewModel.game.milestones" :awards="viewModel.game.awards" :players="viewModel.players" :viewerColor="viewModel.thisPlayer?.color" scrollable @split="tableSplit = $event">
-            <template v-if="tableSplit" #corner>
-              <LogMilestonesSwitches corner separateOnly :separate="true" @separate="setSeparateMilestonesLog" />
-            </template>
-          </MilestoneAwardTable>
+          <Milestones :milestones="viewModel.game.milestones" :showScores="true" :showDescriptionDefault="true" />
+          <Awards :awards="viewModel.game.awards" :showScores="true" :showDescriptionDefault="true" />
         </div>
-        <!-- Transposed table (narrow box): no free corner, the switch goes below the table -->
-        <LogMilestonesSwitches v-if="!tableSplit" separateOnly :separate="true" @separate="setSeparateMilestonesLog" />
+        <LogMilestonesSwitches separateOnly :separate="true" @separate="setSeparateMilestonesLog" />
       </div>
       <!-- Spectator: height of the box via drag handle, the log below takes the rest -->
       <RowResizeHandle v-if="resizableMilestones" kind="milestones" />
@@ -72,16 +68,10 @@
         </div>
       </div>
       <div v-if="hasMilestonesAwards" v-show="showsMilestonesAwards" class="log-milestones">
-        <MilestoneAwardTable :milestones="viewModel.game.milestones" :awards="viewModel.game.awards" :players="viewModel.players" :viewerColor="viewModel.thisPlayer?.color" scrollable @split="tableSplit = $event">
-          <!-- Switches in the free corner above the names, only while hovering the box -->
-          <template v-if="tableSplit" #corner>
-            <LogMilestonesSwitches corner :autoOpen="autoMilestonesTab" :separate="separatesMilestonesAwards"
-              @autoOpen="setAutoMilestonesTab" @separate="setSeparateMilestonesLog" />
-          </template>
-        </MilestoneAwardTable>
+        <Milestones :milestones="viewModel.game.milestones" :showScores="true" :showDescriptionDefault="true" />
+        <Awards :awards="viewModel.game.awards" :showScores="true" :showDescriptionDefault="true" />
       </div>
-      <!-- Transposed table (narrow box): no free corner, the switches go below the table -->
-      <LogMilestonesSwitches v-if="hasMilestonesAwards && !tableSplit" v-show="showsMilestonesAwards"
+      <LogMilestonesSwitches v-if="hasMilestonesAwards" v-show="showsMilestonesAwards"
         :autoOpen="autoMilestonesTab" :separate="separatesMilestonesAwards" @autoOpen="setAutoMilestonesTab" @separate="setSeparateMilestonesLog" />
       <button
         v-show="showScrollToBottomButton && !showsMilestonesAwards"
@@ -131,7 +121,8 @@ import LogFilterBar from '@/client/components/logpanel/LogFilterBar.vue';
 import {isFilterActive, LogFilter, rowMatches} from '@/client/components/logpanel/logFilter';
 import LogGenerationList from '@/client/components/logpanel/LogGenerationList.vue';
 import LogCardsZoom from '@/client/components/logpanel/LogCardsZoom.vue';
-import MilestoneAwardTable from '@/client/components/milestoneAwardTable/MilestoneAwardTable.vue';
+import Milestones from '@/client/components/Milestones.vue';
+import Awards from '@/client/components/Awards.vue';
 import LogMilestonesSwitches from '@/client/components/logpanel/LogMilestonesSwitches.vue';
 import {milestonesAwardsLabel} from '@/client/components/milestoneAwardTable/milestonesAwardsLabel';
 import {cachedLogStream, fetchLogStream, GenerationLog} from '@/client/utils/fetchLogs';
@@ -173,8 +164,6 @@ type ViewState = {
   // otherwise the reader's own choice survives the remount after every update
   acting: boolean,
   view: LogView,
-  // Whether the table has its free corner above the names (not when transposed in a narrow box)
-  tableSplit: boolean,
   // True if the reader was at the end of the log, and so should stay at the end
   // of whatever is newest after a remount.
   following: boolean,
@@ -216,8 +205,6 @@ type Internals = {
 type LogPanelModel = {
   sections: Array<GenerationLog>,
   view: LogView,
-  // Ob die Tabelle ihre freie Ecke über den Namen hat (MilestoneAwardTable meldet es per @split)
-  tableSplit: boolean,
   // Generation whose tab is highlighted: follows the scroll position, or the tab just clicked
   selectedGeneration: number,
   showScrollToBottomButton: boolean,
@@ -289,7 +276,6 @@ export default defineComponent({
     return {
       sections: [],
       view: 'log',
-      tableSplit: true,
       selectedGeneration: -1,
       showScrollToBottomButton: false,
       following: true,
@@ -316,7 +302,8 @@ export default defineComponent({
     LogMessageInspector,
     LogGenerationList,
     LogCardsZoom,
-    MilestoneAwardTable,
+    Milestones,
+    Awards,
     LogMilestonesSwitches,
     LogAiRatings,
     LogAiRateBar,
@@ -973,8 +960,6 @@ export default defineComponent({
     // otherwise the end of the log. Without a change the reader's view stays as it was.
     const restoredState = previousState?.acting === this.acting ? previousState : undefined;
     this.view = restoredState?.view ?? this.turnView(this.acting);
-    // Hängt nur von der Breite ab, nicht vom Zug: übernehmen, damit die Schalter nach dem Remount nicht springen
-    this.tableSplit = previousState?.tableSplit ?? true;
     // Either the view starts fresh, or the reader was at the end, which may have grown since the previous instance unmounted
     this.following = restoredState === undefined || restoredState.following;
     this.selectedGeneration = this.generation;
@@ -1001,7 +986,6 @@ export default defineComponent({
       acting: this.acting,
       // An open milestone/award choice re-applies its focus after the remount; the reader's own view is kept
       view: this.viewBeforeFocus ?? this.view,
-      tableSplit: this.tableSplit,
       following: this.isVisible() ? this.isNearBottom(container) : this.following,
       scrollTop: this.isVisible() ? scrollTopOf(container) : viewState?.scrollTop ?? 0,
     };

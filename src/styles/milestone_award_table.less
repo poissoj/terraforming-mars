@@ -535,6 +535,78 @@ each(@players, {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden auto;
+
+  // The start page's milestone and award tiles: they wrap by themselves, with the player scores inside.
+  // Descriptions are open by default (LogPanel passes showDescriptionDefault).
+  .milestones_cont,
+  .awards_cont {
+    display: block;
+  }
+
+  .milestones_cont + .awards_cont {
+    margin-top: 16px;
+  }
+
+  // Title and costs on one line: the board tiles leave the unpaid spots at their full 190px width,
+  // which is far too wide for the log box. Same compact spots as on the start page.
+  .ma-title {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    white-space: nowrap;
+  }
+
+  .ma-clickable {
+    flex: none;
+  }
+
+  .milestone-award-inline {
+    flex: 0 1 auto;
+    min-width: 0;
+
+    &.paid {
+      // Claimed/funded: a compact owner cube instead of the long name (the tile below keeps the name).
+      flex: none;
+      width: auto;
+      min-width: 34px;
+      margin: 0 2px;
+      padding: 1px 4px;
+    }
+
+    &.unpaid {
+      flex: none;
+      width: auto;
+      min-width: 34px;
+      margin: 0 2px;
+      padding: 1px 4px;
+    }
+  }
+
+  // The cube is positioned absolutely on the board, but in the title line it belongs into the flow:
+  // otherwise it would stay fixed to the log panel while the content scrolls.
+  .ma-player-cube {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 21px;
+    height: 21px;
+    vertical-align: middle;
+
+    .board-cube {
+      position: static;
+      margin: 0;
+    }
+  }
+
+  // The cube on a claimed/funded tile: make the tile its containing block so it scrolls with the content.
+  .ma-block {
+    position: relative;
+  }
+
+  .milestone-award-price {
+    margin: 0 auto;
+    transform: scale(0.75);
+  }
 }
 
 // Toggles at the bottom right of the box, below the scrolling table: "open on my turn", rightmost "separate log".
@@ -608,7 +680,9 @@ each(@players, {
   border-radius: @or-tabs-radius;
 
   > .log-milestones {
-    flex: none;
+    // The tiles are much taller than the old table: keep the box usable and let the content scroll.
+    flex: 0 1 auto;
+    max-height: 45vh;
   }
 }
 
