@@ -121,11 +121,14 @@ describe('Awards', () => {
     });
 
     const fundedAwards = wrapper.find('[data-test=funded-awards]');
-    expect(fundedAwards.text()).to.include(fundedAward.name);
-    expect(fundedAwards.text()).to.not.include(notFundedAward.name);
+    // The title row carries only the owner cube; the name stays in the award tile below.
+    expect(fundedAwards.text()).eq('');
+    expect(fundedAwards.attributes('aria-label')).eq(fundedAward.name);
+    expect(fundedAwards.attributes('title')).include(fundedAward.name);
 
     const playerCube = fundedAwards.find(`[data-test-player-cube=${fundedAward.color}]`);
     expect(playerCube.exists()).to.be.true;
+    expect(wrapper.find('[data-test=funded-awards]').text()).to.not.include(notFundedAward.name ?? '');
   });
 
   it('shows award spot prices if learner mode is on', () => {

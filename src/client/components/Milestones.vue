@@ -3,8 +3,9 @@
     <div class="milestones">
       <div class="ma-title">
         <a class="ma-clickable" href="#" @click.prevent="toggleList()" v-i18n>Milestones</a>
-        <span v-for="milestone in milestones.filter((m) => m.playerName)" :key="milestone.name" class="milestone-award-inline paid" :title="milestone.playerName">
-          <span v-i18n>{{ milestone.name }}</span>
+        <!-- Claimed: only the owner cube in the title row. The name, description and scores are in the tile below. -->
+        <span v-for="milestone in milestones.filter((m) => m.playerName)" :key="milestone.name" class="milestone-award-inline paid"
+          :title="milestone.name + ' — ' + milestone.playerName" :aria-label="milestone.name">
           <span class="ma-player-cube"><BoardCube v-if="milestone.color !== undefined" class="board-cube" :color="milestone.color" view="slight" /></span>
         </span>
         <span v-for="(spotPrice, index) in availableMilestoneSpots" :key="index" class="milestone-award-inline unpaid">
