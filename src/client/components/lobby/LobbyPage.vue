@@ -157,6 +157,7 @@ import LobbyMatchDialog from './LobbyMatchDialog.vue';
 import LobbyChat from './LobbyChat.vue';
 import HotkeyKeys from '@/client/components/hotkeys/HotkeyKeys.vue';
 import {fetchLobby, lobbyAction, lobbyFailureText, LobbyRequest} from './lobbyApi';
+import {onLobbyEvent, startLobbyEvents, stopLobbyEvents} from './lobbyEvents';
 import {activeFilterCount, bestMatch, defaultLobbyFilters, hasFreeSeat, LobbyFilters, matchesFilters} from './lobbyFilters';
 import {loadLobbyProfile, saveLobbyProfile} from './lobbyProfile';
 import {isLobbyCreatePath, LOBBY_CREATE_PATH, LOBBY_SEAT_PARAMETER, lobbyRoomIdFromPath} from '@/common/lobby/lobbyUrl';
@@ -173,8 +174,9 @@ import {appUrl} from '@/client/utils/appUrl';
 
 const CreateGameForm = defineAsyncComponent(() => import('@/client/components/create/CreateGameForm.vue'));
 
-// Polling: the list doubles as heartbeat of the own seat (server drops seats after 45 s without it)
-const POLL_MS = 2500;
+// SSE is the fast path; this slow poll is the fallback for proxies without streaming and for recovery.
+// The SSE connection and its heartbeat also keep the own seat alive (server drops seats after 45 s).
+const POLL_MS = typeof EventSource === 'undefined' ? 2500 : 30_000;
 
 const instance = getCurrentInstance();
 const storedProfile = loadLobbyProfile();
@@ -213,6 +215,8 @@ const invitedRoomId = lobbyRoomIdFromPath(window.location.pathname);
 const invitedSeatToken = new URLSearchParams(window.location.search).get(LOBBY_SEAT_PARAMETER) ?? undefined;
 let invitationHandled = false;
 let pollTimer: ReturnType<typeof setInterval> | undefined;
+let lobbyRefreshTimer: ReturnType<typeof setTimeout> | undefined;
+let stopLobbyEventListener: (() => void) | undefined;
 // Rooms we sat in while they were still open on this page: their start leads into the game
 const waitedIn = new Set<string>();
 // Set by our own open/join click: a game that starts right away (no free seats left) leads into it too
@@ -265,7 +269,7 @@ function seatCount(room: LobbyRoomModel): string {
 async function refresh(): Promise<void> {
   try {
     const list = await fetchLobby(invitedRoomId);
-    // Only changed rooms render again (polled every few seconds)
+    // Only changed rooms render again (fast via SSE, slow fallback poll)
     rooms.value = reuseUnchanged(rooms.value, list.rooms, (room) => room.id);
     yourRoomId.value = list.yourRoomId;
     const wasRequested = requestedRoomId.value;
@@ -308,6 +312,17 @@ async function refresh(): Promise<void> {
   }
   offerInvitation();
   offerQueueMatch();
+}
+
+// A game save can trigger several lobby events in a burst; refresh once after the burst.
+function scheduleLobbyRefresh(): void {
+  if (lobbyRefreshTimer !== undefined) {
+    return;
+  }
+  lobbyRefreshTimer = setTimeout(() => {
+    lobbyRefreshTimer = undefined;
+    void refresh();
+  }, 150);
 }
 
 function offerInvitation(): void {
@@ -623,12 +638,17 @@ onMounted(() => {
   refresh();
   // Renews an existing permission's subscription (language, key of the server)
   void subscribeLobbyPush();
+  stopLobbyEventListener = onLobbyEvent('lobby', scheduleLobbyRefresh);
+  startLobbyEvents();
   pollTimer = setInterval(refresh, POLL_MS);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onRowKey);
   window.removeEventListener('keydown', onFormEscape);
+  stopLobbyEventListener?.();
+  stopLobbyEvents();
+  clearTimeout(lobbyRefreshTimer);
   clearInterval(pollTimer);
   clearInterval(clockTimer);
 });
