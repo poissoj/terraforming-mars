@@ -11,8 +11,9 @@ import {LobbyError, sanitizeProfile, sanitizeTitle} from './lobbyValidation';
 import {lobbyRoomPath} from '../../common/lobby/lobbyUrl';
 import {LobbyPushKind} from '../../common/lobby/LobbyPushModel';
 import {fileStorage, LobbyStorage} from './lobbyStorage';
+import {notifyLobbyEvent} from '../events/lobbyEvents';
 
-/** A participant who stops polling (closed tab, lost connection) loses the seat after this time */
+/** A participant whose SSE heartbeat and fallback polling both stop (closed tab, lost connection) loses the seat after this time */
 export const PARTICIPANT_TIMEOUT_MS = 45_000;
 /**
  * Started rooms stay in the list as "running" until the game ends or is deleted (forgetGame).
@@ -160,6 +161,13 @@ export class Lobby {
 
   private save(): void {
     this.storage.save(Array.from(this.rooms.values()));
+    notifyLobbyEvent('lobby');
+  }
+
+  /** Keeps an SSE-connected participant's seat alive without asking for the whole list. */
+  public heartbeat(me: string): void {
+    this.ensureLoaded();
+    this.touch(me);
   }
 
   /**

@@ -4,6 +4,7 @@ import {hasForeignLink} from './chatLinks';
 import {ChatWordList, maskWords} from './chatWords';
 import {fileStorage, LobbyStorage} from './lobbyStorage';
 import {LobbyError, sanitizeProfile} from './lobbyValidation';
+import {notifyLobbyEvent} from '../events/lobbyEvents';
 import * as path from 'path';
 
 /**
@@ -86,6 +87,7 @@ export class LobbyChat {
     const id = (messages[messages.length - 1]?.id ?? 0) + 1;
     messages.push({id, at: now, participant: me, name: author.name, color: author.color, emoji: author.emoji, text: clean});
     this.storage.save(this.all());
+    notifyLobbyEvent('lobby-chat');
     return this.list(me);
   }
 
@@ -108,6 +110,7 @@ export class LobbyChat {
         message.edited = true;
       }
       this.storage.save(this.all());
+      notifyLobbyEvent('lobby-chat');
     }
     return this.list(me, admin);
   }
@@ -124,6 +127,7 @@ export class LobbyChat {
     }
     messages.splice(index, 1);
     this.storage.save(messages);
+    notifyLobbyEvent('lobby-chat');
     return this.list(me, admin);
   }
 }

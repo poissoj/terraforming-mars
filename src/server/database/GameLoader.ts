@@ -17,6 +17,7 @@ import {GameDeletionReason} from '../../common/models/GameDeletionModel';
 import {isUsableDaysSetting} from './utils';
 import {notifyGameGone} from './gameGone';
 import {recordReplayTrack} from '../replay/recordReplayTrack';
+import {notifyLobbyEvent} from '../events/lobbyEvents';
 
 const metrics = {
   initialize: new prometheus.Gauge({
@@ -284,7 +285,10 @@ export class GameLoader implements IGameLoader {
       throw new Error('This game no longer exists');
     }
     recordReplayTrack(game);
-    return Database.getInstance().saveGame(game);
+    return Database.getInstance().saveGame(game).then(() => {
+      // Running-game rows show generation/progress; keep open lobby pages current without polling quickly
+      notifyLobbyEvent('lobby');
+    });
   }
 
   public async deleteGame(gameId: GameId, reason: GameDeletionReason = 'deleted-in-admin-area'): Promise<void> {

@@ -87,6 +87,7 @@ import LobbyEmojiSuggestions from './LobbyEmojiSuggestions.vue';
 import {useEmojiCompletion} from './useEmojiCompletion';
 import {hotkeysAvailable} from '@/client/hotkeys/hotkeyAvailability';
 import {lobbyFailureText} from './lobbyApi';
+import {onLobbyEvent, startLobbyEvents} from './lobbyEvents';
 
 const props = defineProps<{
   profile: LobbyProfile;
@@ -94,8 +95,8 @@ const props = defineProps<{
   withProfile: (action: () => void) => void;
 }>();
 
-// Same rhythm as the lobby list
-const POLL_MS = 2500;
+// SSE triggers the fast path; this slow poll is the fallback for proxies without streaming.
+const POLL_MS = typeof EventSource === 'undefined' ? 2500 : 30_000;
 
 const messages = ref<Array<LobbyChatMessage>>([]);
 const draft = ref('');
@@ -261,6 +262,7 @@ function onDocumentClick(event: MouseEvent): void {
   }
 }
 let timer: ReturnType<typeof setInterval> | undefined;
+let stopLobbyChatListener: (() => void) | undefined;
 
 // 24-hour clock in every language: the app's language codes are no browser locales (cn, br, jp …)
 function clockTime(at: number): string {
@@ -316,10 +318,13 @@ onMounted(() => {
   document.addEventListener('click', onDocumentClick);
   window.addEventListener('keydown', onPageKey);
   void refresh();
+  stopLobbyChatListener = onLobbyEvent('lobby-chat', () => void refresh());
+  startLobbyEvents();
   timer = setInterval(refresh, POLL_MS);
 });
 
 onBeforeUnmount(() => {
+  stopLobbyChatListener?.();
   clearInterval(timer);
   clearTimeout(updatedTimer);
   document.removeEventListener('click', onDocumentClick);
