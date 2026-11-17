@@ -3,8 +3,12 @@ import {ApiEvents} from '@/server/routes/ApiEvents';
 import {Lobby} from '@/server/lobby/Lobby';
 import {memoryStorage} from '@/server/lobby/lobbyStorage';
 import {notifyLobbyEvent} from '@/server/events/lobbyEvents';
+import {notifyGameChanged} from '@/server/events/gameEvents';
+import {notifyGameGone} from '@/server/database/gameGone';
 import {RouteTestScaffolding} from './RouteTestScaffolding';
 import {MockResponse} from './HttpMocks';
+import {Game} from '@/server/Game';
+import {TestPlayer} from '../TestPlayer';
 
 describe('ApiEvents', () => {
   it('streams lobby invalidations until the client disconnects', async () => {
@@ -26,5 +30,26 @@ describe('ApiEvents', () => {
 
     scaffolding.req.emitClose();
     await request;
+  });
+
+  it('streams game saves and deletion for a player page', async () => {
+    const player = TestPlayer.BLUE.newPlayer();
+    const game = Game.newInstance('g-events', [player], player, 's-events');
+    const lobby = new Lobby(() => 1_000_000, () => 'room', memoryStorage());
+    const scaffolding = new RouteTestScaffolding();
+    await scaffolding.ctx.gameLoader.add(game);
+    scaffolding.url = '/api/events?id=' + player.id;
+    const response = new MockResponse();
+
+    const request = scaffolding.get(new ApiEvents(lobby), response);
+    await Promise.resolve();
+    notifyGameChanged(game.id, 2, 1);
+    notifyGameGone(game.id);
+    scaffolding.req.emitClose();
+    await request;
+
+    expect(response.content).contains('event: game\n');
+    expect(response.content).contains('"gameAge":2');
+    expect(response.content).contains('event: game-gone\n');
   });
 });

@@ -18,6 +18,7 @@ import {isUsableDaysSetting} from './utils';
 import {notifyGameGone} from './gameGone';
 import {recordReplayTrack} from '../replay/recordReplayTrack';
 import {notifyLobbyEvent} from '../events/lobbyEvents';
+import {notifyGameChanged} from '../events/gameEvents';
 
 const metrics = {
   initialize: new prometheus.Gauge({
@@ -288,6 +289,8 @@ export class GameLoader implements IGameLoader {
     return Database.getInstance().saveGame(game).then(() => {
       // Running-game rows show generation/progress; keep open lobby pages current without polling quickly
       notifyLobbyEvent('lobby');
+      // Player and spectator pages use this instead of the one-second waitingFor poll
+      notifyGameChanged(game.id, game.gameAge, game.undoCount);
     });
   }
 
