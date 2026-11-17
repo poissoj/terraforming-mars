@@ -1,4 +1,5 @@
 import {paths} from '@/common/app/paths';
+import {getPreferences} from '@/client/utils/PreferencesManager';
 
 export type GameEventKind = 'game' | 'game-gone';
 type Listener = (kind: GameEventKind) => void;
@@ -24,7 +25,7 @@ function connect(id: string): void {
     return;
   }
   try {
-    const events = new EventSource(`${paths.API_EVENTS}?id=${encodeURIComponent(id)}`);
+    const events = new EventSource(`${paths.API_EVENTS}?id=${encodeURIComponent(id)}&lang=${encodeURIComponent(getPreferences().lang)}`);
     source = events;
     events.addEventListener('game', () => emit('game'));
     events.addEventListener('game-gone', () => emit('game-gone'));

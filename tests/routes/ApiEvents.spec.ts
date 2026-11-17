@@ -4,6 +4,7 @@ import {Lobby} from '@/server/lobby/Lobby';
 import {memoryStorage} from '@/server/lobby/lobbyStorage';
 import {notifyLobbyEvent} from '@/server/events/lobbyEvents';
 import {notifyGameChanged} from '@/server/events/gameEvents';
+import {notifyServerStatus} from '@/server/events/serverStatusEvents';
 import {notifyGameGone} from '@/server/database/gameGone';
 import {RouteTestScaffolding} from './RouteTestScaffolding';
 import {MockResponse} from './HttpMocks';
@@ -30,6 +31,22 @@ describe('ApiEvents', () => {
 
     scaffolding.req.emitClose();
     await request;
+  });
+
+  it('streams server status snapshots', async () => {
+    const lobby = new Lobby(() => 1_000_000, () => 'room', memoryStorage());
+    const scaffolding = new RouteTestScaffolding();
+    scaffolding.url = '/api/events?status=1';
+    const response = new MockResponse();
+
+    const request = scaffolding.get(new ApiEvents(lobby), response);
+    notifyServerStatus({updating: true, startedAt: 7, activeParticipants: 2});
+    scaffolding.req.emitClose();
+    await request;
+
+    expect(response.content).contains('event: server-status\n');
+    expect(response.content).contains('"updating":true');
+    expect(response.content).contains('"activeParticipants":2');
   });
 
   it('streams game saves and deletion for a player page', async () => {

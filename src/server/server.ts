@@ -37,6 +37,7 @@ import {startUptimeRecording} from '@/server/admin/dashboard/uptimeRecord';
 import {startPresenceRecording} from '@/server/admin/dashboard/presenceRecord';
 import {rustAiSupportFile} from './ai/rust/rustAiSupportFile';
 import {rustAiUpdater} from './ai/rust/RustAiUpdater';
+import {startServerStatusBroadcast} from './server/serverStatusBroadcast';
 
 process.on('uncaughtException', (err: unknown) => {
   console.error('UNCAUGHT EXCEPTION', err);
@@ -175,6 +176,8 @@ async function start() {
   startPresenceRecording();
   // Looks for newer Rust AI releases for the admin page; installing needs the admin's button (RustAiUpdater.ts)
   rustAiUpdater.start();
+  // Push status changes (update flag, online players, new AI) to open pages instead of a 5 s poll
+  startServerStatusBroadcast();
   // Maintenance otherwise runs only at startup. A server with a purge window (MAX_GAME_DAYS, e.g. the
   // public test server) restarts rarely, so it repeats hourly; without the variable nothing changes.
   if (process.env.MAX_GAME_DAYS !== undefined) {

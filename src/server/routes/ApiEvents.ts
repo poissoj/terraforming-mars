@@ -5,6 +5,12 @@ import {Response} from '../Response';
 import {RouteError} from './RouteError';
 import {isParticipantId} from '../../common/lobby/LobbyModel';
 import {isPlayerId, isSpectatorId} from '../../common/Types';
+import {Phase} from '../../common/Phase';
+import {noteActiveParticipant} from '../server/activeParticipants';
+import {presenceRecord} from '../admin/dashboard/presenceRecord';
+import {isLanguage, noteParticipantLanguage} from '../server/participantLanguages';
+import {currentServerStatus} from '../server/serverStatusModel';
+import {subscribeServerStatus} from '../events/serverStatusEvents';
 import {Lobby} from '../lobby/Lobby';
 import {subscribeLobbyEvents} from '../events/lobbyEvents';
 import {subscribeGameEvents} from '../events/gameEvents';
@@ -30,13 +36,14 @@ export class ApiEvents extends Handler {
   public override async get(req: Request, res: Response, ctx: Context): Promise<void> {
     const me = ctx.urlParams.stringOrUndefined('me');
     const participant = ctx.urlParams.stringOrUndefined('id');
+    const statusOnly = ctx.urlParams.stringOrUndefined('status') === '1';
     if (me !== undefined && !isParticipantId(me)) {
       throw RouteError.badRequest('Invalid participant');
     }
     if (participant !== undefined && !isPlayerId(participant) && !isSpectatorId(participant)) {
       throw RouteError.badRequest('Invalid participant');
     }
-    if (me === undefined && participant === undefined) {
+    if (me === undefined && participant === undefined && !statusOnly) {
       throw RouteError.badRequest('Missing participant');
     }
 
@@ -44,6 +51,18 @@ export class ApiEvents extends Handler {
     if (participant !== undefined && game === undefined) {
       throw RouteError.notFound('cannot find game for that player');
     }
+
+    const notePresence = () => {
+      if (game === undefined || participant === undefined || !isPlayerId(participant) || game.phase === Phase.END) {
+        return;
+      }
+      noteActiveParticipant(participant);
+      presenceRecord.notePlayer(participant);
+      const lang = ctx.urlParams.stringOrUndefined('lang');
+      if (isLanguage(lang)) {
+        noteParticipantLanguage(participant, lang);
+      }
+    };
 
     const openConnections = connectionsByIp.get(ctx.ip) ?? 0;
     if (openConnections >= MAX_CONNECTIONS_PER_IP) {
@@ -71,6 +90,11 @@ export class ApiEvents extends Handler {
       this.lobby.heartbeat(me);
       unsubscribers.push(subscribeLobbyEvents((event) => send(event)));
     }
+    if (statusOnly) {
+      const status = currentServerStatus();
+      send('server-status', status);
+      unsubscribers.push(subscribeServerStatus((next) => send('server-status', next)));
+    }
     if (game !== undefined) {
       const gameId = game.id;
       unsubscribers.push(subscribeGameEvents((event) => {
@@ -85,12 +109,14 @@ export class ApiEvents extends Handler {
       }));
     }
 
+    notePresence();
     const heartbeat = setInterval(() => {
       if (!closed) {
         res.write(': heartbeat\n\n');
         if (me !== undefined) {
           this.lobby.heartbeat(me);
         }
+        notePresence();
       }
     }, SSE_HEARTBEAT_MS);
 
