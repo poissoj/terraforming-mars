@@ -4,13 +4,12 @@ import {Context} from './IHandler';
 import {Request} from '../Request';
 import {Response} from '../Response';
 import {ServerStatusModel} from '../../common/models/ServerStatusModel';
-import {isServerUpdating, serverStartedAt, serverUpdateCommits} from '../server/serverUpdate';
-import {activeParticipantCount, noteActiveParticipant} from '../server/activeParticipants';
+import {noteActiveParticipant} from '../server/activeParticipants';
 import {presenceRecord} from '../admin/dashboard/presenceRecord';
 import {isLanguage, noteParticipantLanguage} from '../server/participantLanguages';
 import {isPlayerId} from '../../common/Types';
 import {Phase} from '../../common/Phase';
-import {rustAiOffered} from '../ai/rust/RustMirror';
+import {currentServerStatus} from '../server/serverStatusModel';
 
 /** Polled by every open page (serverStatus.ts) and by update scripts on the server itself. */
 export class ApiStatus extends Handler {
@@ -34,16 +33,7 @@ export class ApiStatus extends Handler {
         }
       }
     }
-    const status: ServerStatusModel = {
-      updating: isServerUpdating(),
-      startedAt: serverStartedAt,
-      activeParticipants: activeParticipantCount(),
-      newAi: rustAiOffered(),
-    };
-    const commits = serverUpdateCommits();
-    if (commits.length > 0) {
-      status.updateCommits = commits;
-    }
+    const status: ServerStatusModel = currentServerStatus();
     responses.writeJson(res, ctx, status);
   }
 }

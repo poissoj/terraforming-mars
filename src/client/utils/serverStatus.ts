@@ -19,9 +19,12 @@ export const activeParticipants = ref<number | undefined>(undefined);
 // The new AI is installed on this server (create form: version choice per AI seat)
 export const newAiAvailable = ref(false);
 
-const POLL_MILLISECONDS = 5000;
+const POLL_MILLISECONDS = typeof EventSource === 'undefined' ? 5000 : 15_000;
 let knownStartedAt: number | undefined;
 let timer: ReturnType<typeof setInterval> | undefined;
+let statusSource: EventSource | undefined;
+let statusRetryTimer: ReturnType<typeof setTimeout> | undefined;
+let statusRetryDelayMs = 2_000;
 
 /** Also called when the server refuses an input because of an update. */
 export function markServerUpdating(): void {
@@ -69,6 +72,38 @@ async function poll(participantId: string | undefined): Promise<void> {
   }
 }
 
+function connectStatusEvents(): void {
+  if (statusSource !== undefined || typeof EventSource === 'undefined') {
+    return;
+  }
+  try {
+    const source = new EventSource(paths.API_EVENTS + '?status=1');
+    statusSource = source;
+    source.addEventListener('server-status', (event) => {
+      try {
+        applyServerStatus(JSON.parse((event as MessageEvent).data));
+      } catch {
+        // Ignore malformed status data and let the fallback poll repair it
+      }
+    });
+    source.onopen = () => {
+      statusRetryDelayMs = 2_000;
+    };
+    source.onerror = () => {
+      if (statusSource === source) {
+        statusSource = undefined;
+      }
+      source.close();
+      if (timer !== undefined) {
+        statusRetryTimer = setTimeout(connectStatusEvents, statusRetryDelayMs);
+        statusRetryDelayMs = Math.min(statusRetryDelayMs * 2, 30_000);
+      }
+    };
+  } catch (error) {
+    console.warn('Server status events unavailable, falling back to polling', error);
+  }
+}
+
 /** participantId: the player, spectator or game id of a game page, so the server knows somebody is playing. */
 export function startServerStatusPolling(participantId: string | undefined): void {
   if (timer !== undefined) {
@@ -76,6 +111,7 @@ export function startServerStatusPolling(participantId: string | undefined): voi
   }
   void poll(participantId);
   timer = setInterval(() => void poll(participantId), POLL_MILLISECONDS);
+  connectStatusEvents();
 }
 
 /** Only for tests. */
@@ -84,6 +120,12 @@ export function resetServerStatus(): void {
     clearInterval(timer);
     timer = undefined;
   }
+  if (statusRetryTimer !== undefined) {
+    clearTimeout(statusRetryTimer);
+    statusRetryTimer = undefined;
+  }
+  statusSource?.close();
+  statusSource = undefined;
   knownStartedAt = undefined;
   serverUpdatePhase.value = 'none';
   serverUpdateCommits.value = [];

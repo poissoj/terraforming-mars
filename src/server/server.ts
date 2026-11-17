@@ -32,6 +32,7 @@ import {installDecisionLogFile} from '@/server/ai/decisionLogFile';
 import {clearServerUpdateFlag} from '@/server/server/serverUpdate';
 import {startUptimeRecording} from '@/server/admin/dashboard/uptimeRecord';
 import {startPresenceRecording} from '@/server/admin/dashboard/presenceRecord';
+import {startServerStatusBroadcast} from './server/serverStatusBroadcast';
 
 process.on('uncaughtException', (err: any) => {
   console.error('UNCAUGHT EXCEPTION', err);
@@ -166,6 +167,8 @@ async function start() {
   startUptimeRecording();
   // Who is online when (5-minute slots), for the time-of-day chart of the admin dashboard
   startPresenceRecording();
+  // Push status changes (update flag, online players, new AI) to open pages instead of a 5 s poll
+  startServerStatusBroadcast();
   // Maintenance otherwise runs only at startup. A server with a purge window (MAX_GAME_DAYS, e.g. the
   // public test server) restarts rarely, so it repeats hourly; without the variable nothing changes.
   if (process.env.MAX_GAME_DAYS !== undefined) {
