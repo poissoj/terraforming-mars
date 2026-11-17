@@ -372,11 +372,15 @@ export default defineComponent({
     setDocumentTitle();
     // Game pages send their id, so the server knows somebody is playing (no automatic update then)
     const pageId = new URLSearchParams(window.location.search).get('id') ?? '';
-    startServerStatusPolling(isPlayerId(pageId) || isSpectatorId(pageId) ? pageId : undefined);
+    const currentPathname = getLastPathSegment();
+    // Lobby and game pages add the server-status scope to their own stream; only other pages need a dedicated one
+    const hasOwnEventStream = currentPathname === paths.LOBBY ||
+      currentPathname === paths.PLAYER || currentPathname === paths.SPECTATOR ||
+      isLobbyCreatePath(window.location.pathname) || lobbyRoomIdFromPath(window.location.pathname) !== undefined;
+    startServerStatusPolling(isPlayerId(pageId) || isSpectatorId(pageId) ? pageId : undefined, !hasOwnEventStream);
     if (!windowHasHTMLDialogElement()) {
       dialogPolyfill.registerDialog(document.getElementById('alert-dialog') as HTMLDialogElement);
     }
-    const currentPathname = getLastPathSegment();
     const app = this as unknown as MainAppData & {updatePlayer(): void; updateSpectator(): void};
     if (currentPathname === paths.PLAYER) {
       app.updatePlayer();

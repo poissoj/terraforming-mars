@@ -2,6 +2,7 @@ import {ref} from 'vue';
 import {paths} from '@/common/app/paths';
 import {ServerStatusModel, ServerUpdateCommit} from '@/common/models/ServerStatusModel';
 import {getPreferences} from '@/client/utils/PreferencesManager';
+import {clearServerEventScope, onServerEvent, setServerEventScope} from './serverEvents';
 
 // Every open page asks the server regularly whether an update is coming (GET /api/status).
 // 'updating': the server is about to restart, inputs are frozen (ServerUpdateOverlay.vue).
@@ -22,9 +23,17 @@ export const newAiAvailable = ref(false);
 const POLL_MILLISECONDS = typeof EventSource === 'undefined' ? 5000 : 15_000;
 let knownStartedAt: number | undefined;
 let timer: ReturnType<typeof setInterval> | undefined;
-let statusSource: EventSource | undefined;
-let statusRetryTimer: ReturnType<typeof setTimeout> | undefined;
-let statusRetryDelayMs = 2_000;
+
+onServerEvent('server-status', (data) => {
+  if (data === undefined) {
+    return;
+  }
+  try {
+    applyServerStatus(JSON.parse(data));
+  } catch {
+    // Ignore malformed status data and let the fallback poll repair it
+  }
+});
 
 /** Also called when the server refuses an input because of an update. */
 export function markServerUpdating(): void {
@@ -72,46 +81,18 @@ async function poll(participantId: string | undefined): Promise<void> {
   }
 }
 
-function connectStatusEvents(): void {
-  if (statusSource !== undefined || typeof EventSource === 'undefined') {
-    return;
-  }
-  try {
-    const source = new EventSource(paths.API_EVENTS + '?status=1');
-    statusSource = source;
-    source.addEventListener('server-status', (event) => {
-      try {
-        applyServerStatus(JSON.parse((event as MessageEvent).data));
-      } catch {
-        // Ignore malformed status data and let the fallback poll repair it
-      }
-    });
-    source.onopen = () => {
-      statusRetryDelayMs = 2_000;
-    };
-    source.onerror = () => {
-      if (statusSource === source) {
-        statusSource = undefined;
-      }
-      source.close();
-      if (timer !== undefined) {
-        statusRetryTimer = setTimeout(connectStatusEvents, statusRetryDelayMs);
-        statusRetryDelayMs = Math.min(statusRetryDelayMs * 2, 30_000);
-      }
-    };
-  } catch (error) {
-    console.warn('Server status events unavailable, falling back to polling', error);
-  }
-}
 
 /** participantId: the player, spectator or game id of a game page, so the server knows somebody is playing. */
-export function startServerStatusPolling(participantId: string | undefined): void {
+export function startServerStatusPolling(participantId: string | undefined, startEvents = true): void {
   if (timer !== undefined) {
     return;
   }
   void poll(participantId);
   timer = setInterval(() => void poll(participantId), POLL_MILLISECONDS);
-  connectStatusEvents();
+  // Lobby and game pages add status to their own connection; this is only for pages without one.
+  if (startEvents) {
+    setServerEventScope({status: true});
+  }
 }
 
 /** Only for tests. */
@@ -120,12 +101,7 @@ export function resetServerStatus(): void {
     clearInterval(timer);
     timer = undefined;
   }
-  if (statusRetryTimer !== undefined) {
-    clearTimeout(statusRetryTimer);
-    statusRetryTimer = undefined;
-  }
-  statusSource?.close();
-  statusSource = undefined;
+  clearServerEventScope('status');
   knownStartedAt = undefined;
   serverUpdatePhase.value = 'none';
   serverUpdateCommits.value = [];
