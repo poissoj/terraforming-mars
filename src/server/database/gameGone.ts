@@ -9,8 +9,14 @@ const listeners: Array<GameGoneListener> = [];
  * deleted. A loose hook instead of an import in GameLoader on purpose: tests that finish games must
  * not touch the lobby file.
  */
-export function onGameGone(listener: GameGoneListener): void {
+export function onGameGone(listener: GameGoneListener): () => void {
   listeners.push(listener);
+  return () => {
+    const index = listeners.indexOf(listener);
+    if (index >= 0) {
+      listeners.splice(index, 1);
+    }
+  };
 }
 
 /** Called by GameLoader when a game finished, was deleted in the admin area or purged */

@@ -62,14 +62,17 @@ import {ingestView} from '@/client/utils/changeTracker';
 import {describeFailure, failureFromResponse, RequestFailedError, RequestFailure} from '@/client/utils/requestFailure';
 import {describeGameLoadFailure} from '@/client/utils/gameLoadFailure';
 import {aiThinking} from '@/client/utils/aiThinking';
+import {onGameEvent, startGameEvents, stopGameEvents} from '@/client/utils/gameEvents';
 
 let ui_update_timeout_id: number | undefined;
 let otherPlayersTimer: number | undefined;
 let documentTitleTimer: number | undefined;
+let stopGameEventListener: (() => void) | undefined;
 let animationFrame = 0;
 
-// How often to refresh other players' status during simultaneous phases.
-const OTHER_PLAYERS_INTERVAL = 3000;
+// SSE provides the fast path; these are the fallback intervals when it is unavailable or blocked.
+const WAITING_FOR_FALLBACK_MS = typeof EventSource === 'undefined' ? raw_settings.waitingForTimeout : 5000;
+const OTHER_PLAYERS_FALLBACK_INTERVAL = typeof EventSource === 'undefined' ? 3000 : 15_000;
 // Phases where every player makes a choice at the same time.
 const SIMULTANEOUS_PHASES: ReadonlyArray<Phase> = [Phase.INITIALDRAFTING, Phase.DRAFTING, Phase.RESEARCH];
 
@@ -136,6 +139,7 @@ export default defineComponent({
   methods: {
     isChoiceMenu,
     start() {
+      startGameEvents(this.playerView.id);
       document.title = gameDocumentTitle(this.titleView);
       if (getPreferences().experimental_ui) {
         setFaviconStatus(this.waitingfor !== undefined ? 'turn' : 'idle');
@@ -263,7 +267,7 @@ export default defineComponent({
       // No reload at game end: the player view then shows the floating message (GameOverNotice),
       // which itself forwards to the results page. A reload jumped there immediately, the message was never seen.
     },
-    waitForUpdate() {
+    waitForUpdate(immediate = false) {
       const vueApp = this;
       const root = vueRoot(this);
       clearTimeout(ui_update_timeout_id);
@@ -311,13 +315,13 @@ export default defineComponent({
         xhr.responseType = 'json';
         xhr.send();
       };
-      ui_update_timeout_id = window.setTimeout(askForUpdate, raw_settings.waitingForTimeout);
+      ui_update_timeout_id = window.setTimeout(askForUpdate, immediate ? 0 : WAITING_FOR_FALLBACK_MS);
     },
     /**
      * While this player makes a simultaneous choice (e.g. drafting), keep the other
      * players' status current without redrawing the choice in progress.
      */
-    watchOtherPlayers() {
+    watchOtherPlayers(immediate = false) {
       const playerView = this.playerView;
       window.clearTimeout(otherPlayersTimer);
       // Schedule the next poll only after this one finishes, so responses can't arrive out of order.
@@ -341,8 +345,15 @@ export default defineComponent({
         if (otherPlayersTimer === timer) {
           this.watchOtherPlayers();
         }
-      }, OTHER_PLAYERS_INTERVAL);
+      }, immediate ? 0 : OTHER_PLAYERS_FALLBACK_INTERVAL);
       otherPlayersTimer = timer;
+    },
+    onGameEvent(kind: 'game' | 'game-gone') {
+      if (this.waitingfor === undefined || this.waitingfor.optional || kind === 'game-gone') {
+        this.waitForUpdate(true);
+      } else if (this.playerView.players.length > 1 && SIMULTANEOUS_PHASES.includes(this.playerView.game.phase)) {
+        this.watchOtherPlayers(true);
+      }
     },
     notify() {
       if (getPreferences().enable_sounds) {
@@ -380,10 +391,15 @@ export default defineComponent({
     },
   },
   mounted() {
+    stopGameEventListener = onGameEvent((kind) => this.onGameEvent(kind));
+    startGameEvents(this.playerView.id);
     this.start();
   },
   beforeUnmount() {
     this.stop();
+    stopGameEventListener?.();
+    stopGameEventListener = undefined;
+    stopGameEvents();
   },
   computed: {
     // Action menu (OrOptions) and start selection build their own tabs; everything else goes into WaitingForTabs
