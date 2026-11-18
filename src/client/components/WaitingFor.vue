@@ -62,17 +62,20 @@ import {ingestView} from '@/client/utils/changeTracker';
 import {describeFailure, failureFromResponse, RequestFailedError, RequestFailure} from '@/client/utils/requestFailure';
 import {describeGameLoadFailure} from '@/client/utils/gameLoadFailure';
 import {aiThinking} from '@/client/utils/aiThinking';
-import {onGameEvent, startGameEvents, stopGameEvents} from '@/client/utils/gameEvents';
+import {GameEventData, onGameEvent, startGameEvents, stopGameEvents} from '@/client/utils/gameEvents';
 
 let ui_update_timeout_id: number | undefined;
 let otherPlayersTimer: number | undefined;
 let documentTitleTimer: number | undefined;
 let stopGameEventListener: (() => void) | undefined;
+let gameRefreshTimer: number | undefined;
 let animationFrame = 0;
 
 // SSE provides the fast path; these are the fallback intervals when it is unavailable or blocked.
 const WAITING_FOR_FALLBACK_MS = typeof EventSource === 'undefined' ? raw_settings.waitingForTimeout : 5000;
 const OTHER_PLAYERS_FALLBACK_INTERVAL = typeof EventSource === 'undefined' ? 3000 : 15_000;
+// Absorbs the saves of one action/AI turn; the game is turn-based, so this stays below perception.
+const GAME_EVENT_COALESCE_MS = 250;
 // Phases where every player makes a choice at the same time.
 const SIMULTANEOUS_PHASES: ReadonlyArray<Phase> = [Phase.INITIALDRAFTING, Phase.DRAFTING, Phase.RESEARCH];
 
@@ -159,6 +162,8 @@ export default defineComponent({
       ui_update_timeout_id = undefined;
       window.clearTimeout(otherPlayersTimer);
       otherPlayersTimer = undefined;
+      window.clearTimeout(gameRefreshTimer);
+      gameRefreshTimer = undefined;
       window.clearInterval(documentTitleTimer);
       documentTitleTimer = undefined;
     },
@@ -348,8 +353,29 @@ export default defineComponent({
       }, immediate ? 0 : OTHER_PLAYERS_FALLBACK_INTERVAL);
       otherPlayersTimer = timer;
     },
-    onGameEvent(kind: 'game' | 'game-gone') {
-      if (this.waitingfor === undefined || this.waitingfor.optional || kind === 'game-gone') {
+    onGameEvent(kind: 'game' | 'game-gone', data?: GameEventData) {
+      if (kind === 'game-gone') {
+        window.clearTimeout(gameRefreshTimer);
+        gameRefreshTimer = undefined;
+        this.refreshForGameEvent();
+        return;
+      }
+      if (data !== undefined &&
+          data.gameAge <= this.playerView.game.gameAge &&
+          data.undoCount <= this.playerView.game.undoCount) {
+        return;
+      }
+      // AI moves can save several times in a burst; one refresh sees the final state.
+      if (gameRefreshTimer !== undefined) {
+        return;
+      }
+      gameRefreshTimer = window.setTimeout(() => {
+        gameRefreshTimer = undefined;
+        this.refreshForGameEvent();
+      }, GAME_EVENT_COALESCE_MS);
+    },
+    refreshForGameEvent() {
+      if (this.waitingfor === undefined || this.waitingfor.optional) {
         this.waitForUpdate(true);
       } else if (this.playerView.players.length > 1 && SIMULTANEOUS_PHASES.includes(this.playerView.game.phase)) {
         this.watchOtherPlayers(true);
@@ -391,7 +417,7 @@ export default defineComponent({
     },
   },
   mounted() {
-    stopGameEventListener = onGameEvent((kind) => this.onGameEvent(kind));
+    stopGameEventListener = onGameEvent((kind, data) => this.onGameEvent(kind, data));
     startGameEvents(this.playerView.id);
     this.start();
   },
