@@ -96,6 +96,7 @@ import {sanitizeEscapeVelocityOptions} from '@/common/game/escapeVelocity';
 import {ColoniesHandler} from './colonies/ColoniesHandler';
 import {annotateLogMessage} from './logs/aiDecisionContext';
 import {notifyGameLoaded} from './ai/aiHook';
+import {warnAggregated} from './utils/aggregatedWarn';
 
 // Can be overridden by tests
 let createGameLog: () => Array<LogMessage> = () => [];
@@ -1958,7 +1959,8 @@ export class Game implements IGame, Logger {
 
       metadata: metadata,
     };
-    console.warn('Illegal state: ' + description, JSON.stringify(gameMetadata, null, ' '));
+    const message = 'Illegal state: ' + description + ' ' + JSON.stringify(gameMetadata, null, ' ');
+    warnAggregated(`illegal-state:${this.id}:${description}:${JSON.stringify(metadata)}`, message);
   }
 
   public getActionCount() {

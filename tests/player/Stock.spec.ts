@@ -273,22 +273,9 @@ describe('Stock', () => {
     console.warn = warn;
 
     expect(consoleLog).has.length(1);
-    expect(consoleLog[0][0]).eq('Illegal state: Adjusting -12 megacredits when player has 10');
-    expect(JSON.parse(consoleLog[0][1])).deep.eq(
-      {
-        'gameId': 'game-id',
-        'lastSaveId': 0,
-        'logAge': 7,
-        'currentPlayer': 'p-player1-id',
-        'metadata': {
-          'player': {
-            'color': 'blue',
-            'id': 'p-player1-id',
-            'name': 'player1',
-          },
-          'resource': 'megacredits',
-          'amount': -12,
-        },
-      });
+    expect(consoleLog[0][0]).contains('Illegal state: Adjusting -12 megacredits when player has 10');
+    expect(consoleLog[0][0]).contains('"gameId": "game-id"');
+    expect(consoleLog[0][0]).contains('"resource": "megacredits"');
+    expect(consoleLog[0][0]).contains('"amount": -12');
   });
 });

@@ -4,6 +4,7 @@ import {SerializedGame} from '../../src/server/SerializedGame';
 import {IGameLoader} from '../../src/server/database/IGameLoader';
 import {GameLoader} from '../../src/server/database/GameLoader';
 import {globalInitialize} from '../../src/server/globalInitialize';
+import {resetAggregatedWarnings} from '../../src/server/utils/aggregatedWarn';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -57,4 +58,13 @@ process.env.DELETED_GAMES_FILE = path.join(fs.mkdtempSync(path.join(os.tmpdir(),
 globalInitialize();
 
 // Mocha root hooks (this file is loaded with --require, also in parallel mode)
-export const mochaHooks = seededRandomHooks;
+export const mochaHooks = {
+  beforeEach(): void {
+    seededRandomHooks.beforeEach();
+    resetAggregatedWarnings();
+  },
+  afterEach(): void {
+    seededRandomHooks.afterEach();
+    resetAggregatedWarnings();
+  },
+};

@@ -51,6 +51,9 @@ export class Ambient extends CorporationCard implements ICorporationCard {
   }
 
   public action(player: IPlayer) {
+    if (player.availableHeat() < 8) {
+      return undefined;
+    }
     return player.spendHeat(8, () => {
       // A hack that allows this action to be replayable.
       player.defer(() => {

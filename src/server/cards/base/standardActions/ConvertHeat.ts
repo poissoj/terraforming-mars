@@ -39,6 +39,10 @@ export class ConvertHeat extends StandardActionCard {
   }
 
   public action(player: IPlayer) {
+    // The action menu can be older than the current stock (e.g. another effect spent the heat meanwhile).
+    if (player.availableHeat() < HEAT_FOR_TEMPERATURE) {
+      return undefined;
+    }
     return player.spendHeat(HEAT_FOR_TEMPERATURE, () => {
       this.actionUsed(player);
       player.game.increaseTemperature(player, 1);

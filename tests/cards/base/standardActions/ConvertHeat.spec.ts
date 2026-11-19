@@ -62,6 +62,15 @@ describe('ConvertHeat', () => {
     expect(player.terraformRating).eq(20);
   });
 
+  it('does not spend heat if the action became unaffordable after it was offered', () => {
+    player.heat = 8;
+    expect(card.canAct(player)).eq(true);
+    player.heat = 1;
+    expect(card.action(player)).is.undefined;
+    expect(player.heat).eq(1);
+    expect(game.getTemperature()).eq(-30);
+  });
+
   it('canAct adds maxtemp warning at MAX_TEMPERATURE', () => {
     player.heat = 8;
     setTemperature(game, MAX_TEMPERATURE);

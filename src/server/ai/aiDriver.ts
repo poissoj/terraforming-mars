@@ -14,6 +14,7 @@ import {runWithAiDecision} from '../logs/aiDecisionContext';
 import {RustMirror} from './rust/RustMirror';
 import {startThinking, stopThinking} from './aiThinking';
 import {AiLevel} from '../../common/ai/AiLevel';
+import {warnAggregated} from '../utils/aggregatedWarn';
 
 // Plays the moves of AI players on the server. Player.setWaitingFor reports every new input of
 // an AI player; the move is made a little later so humans can follow the game.
@@ -27,31 +28,42 @@ const ACTION_THINKING_MILLISECONDS = Number(process.env.AI_ACTION_DELAY_MS ?? 30
 const MOVE_DELAY_MILLISECONDS = Number(process.env.AI_MOVE_DELAY_MS ?? 1000);
 const LEVEL_SHARE: Record<AiLevel, number> = {easy: 1 / 3, normal: 2 / 3, hard: 1};
 const RANDOM_ATTEMPTS = 50;
+// An input that failed all fallbacks must not be scheduled again by the setWaitingFor hook.
+const processingInputs = new WeakSet<PlayerInput>();
+const failedInputs = new WeakSet<PlayerInput>();
 
 function processWithFallback(player: IPlayer, input: PlayerInput, chosen: InputResponse | undefined): void {
-  const attempts: Array<() => void> = [
-    ...(chosen !== undefined ? [() => player.process(chosen)] : []),
-    () => player.process(quickResponse(input, player)),
-  ];
-  for (const attempt of attempts) {
-    try {
-      attempt();
-      return;
-    } catch (error) {
-      if (player.getWaitingFor() !== input) {
-        return; // the input was answered after all
+  processingInputs.add(input);
+  try {
+    const attempts: Array<() => void> = [
+      ...(chosen !== undefined ? [() => player.process(chosen)] : []),
+      () => player.process(quickResponse(input, player)),
+    ];
+    for (const attempt of attempts) {
+      try {
+        attempt();
+        return;
+      } catch (error) {
+        if (player.getWaitingFor() !== input) {
+          return; // the input was answered after all
+        }
       }
     }
-  }
-  for (let attempt = 0; attempt < RANDOM_ATTEMPTS; attempt++) {
-    try {
-      player.process(randomResponse(input, player, Math.random));
-      return;
-    } catch {
-      // try another random answer
+    for (let attempt = 0; attempt < RANDOM_ATTEMPTS; attempt++) {
+      try {
+        player.process(randomResponse(input, player, Math.random));
+        return;
+      } catch {
+        // try another random answer
+      }
     }
+    failedInputs.add(input);
+    warnAggregated(
+      `ai-could-not-answer:${player.game.id}:${player.id}:${input.type}`,
+      `AI player ${player.name} could not answer input ${input.type} in game ${player.game.id}`);
+  } finally {
+    processingInputs.delete(input);
   }
-  console.warn(`AI player ${player.name} could not answer input ${input.type} in game ${player.game.id}`);
 }
 
 type Choice = {chosen: InputResponse | undefined, summary: ReturnType<typeof takeAiDecisionSummary>};
@@ -125,7 +137,7 @@ function scheduleAiMove(player: IPlayer): void {
     return; // AI players inside game copies are moved by the lookahead, not here
   }
   const input = player.getWaitingFor();
-  if (input === undefined) {
+  if (input === undefined || processingInputs.has(input) || failedInputs.has(input)) {
     return;
   }
   // After its draft pick the AI is offered to change it while the others still choose. Answering

@@ -359,6 +359,11 @@ export class Executor implements BehaviorExecutor {
       const remainder = {...behavior};
       delete remainder['spend'];
 
+      // The card action may have been offered before its cost became unaffordable.
+      if (typeof spend.heat === 'number' && player.availableHeat() < spend.heat) {
+        return;
+      }
+
       if (spend.megacredits) {
         player.game.defer(new SelectPaymentDeferred(player, spend.megacredits, {
           title: TITLES.payForCardAction(card.name),

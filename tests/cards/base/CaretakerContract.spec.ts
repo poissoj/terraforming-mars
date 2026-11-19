@@ -44,6 +44,15 @@ describe('CaretakerContract', () => {
     expect(player.terraformRating).to.eq(21);
   });
 
+  it('does not spend heat if the action became unaffordable after it was offered', () => {
+    player.heat = 8;
+    expect(card.canAct(player)).is.true;
+    player.heat = 1;
+    card.action(player);
+    expect(player.heat).eq(1);
+    expect(player.terraformRating).eq(20);
+  });
+
   it('Cannot act if cannot afford reds tax', () => {
     [game, player] = testGame(1, {turmoilExtension: true});
     const turmoil = game.turmoil!;
