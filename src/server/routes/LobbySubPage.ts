@@ -3,7 +3,6 @@ import {Handler} from './Handler';
 import {Context} from './IHandler';
 import {Request} from '../Request';
 import {Response} from '../Response';
-import {withServerIdentity} from '../server/serverIdentity';
 
 /**
  * The app page at the lobby's addresses (lobby and below lobby/, common/lobby/lobbyUrl.ts). The page loads everything
@@ -23,7 +22,7 @@ export class LobbySubPage extends Handler {
   }
 
   public override get(_req: Request, res: Response, _ctx: Context): Promise<void> {
-    const html = withServerIdentity(fs.readFileSync('assets/index.html', 'utf8'))
+    const html = withServerIdentity(fs.readFileSync('build/index.html', 'utf8'))
       .replace('<head>', `<head>\n        <base href="${this.base}">`);
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache');

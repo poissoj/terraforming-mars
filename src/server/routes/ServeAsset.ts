@@ -17,7 +17,7 @@ type Encoding = 'gzip' | 'br';
 
 // Served as they are, under exactly this path
 const FIXED_FILES: ReadonlyArray<string> = [
-  'assets/index.html',
+  'build/index.html',
   'assets/Prototype.ttf',
   'assets/Prototype-ru.ttf',
   'assets/Prototype-pl.ttf',
@@ -51,6 +51,7 @@ export class FileAPI {
 export class ServeAsset extends Handler {
   public static readonly INSTANCE: ServeAsset = new ServeAsset();
   private readonly cache = new BufferCache();
+  private readonly existsCache = new Map<string, boolean>();
 
   // Public for tests
   public constructor(private cacheAgeSeconds: string | number = process.env.ASSET_CACHE_MAX_AGE || 0,
@@ -58,13 +59,6 @@ export class ServeAsset extends Handler {
     private cacheAssets: boolean = isProduction(),
     private fileApi: FileAPI = FileAPI.INSTANCE) {
     super();
-    // prime the cache with styles.css and a compressed copy of it styles.css
-    const styles = fileApi.readFileSync('build/styles.css');
-    this.cache.set('build/styles.css', styles);
-    const compressed = fileApi.readFileSync('build/styles.css.gz');
-    this.cache.set('build/styles.css.gz', compressed);
-    const brotli = fileApi.readFileSync('build/styles.css.br');
-    this.cache.set('build/styles.css.br', brotli);
   }
 
   public override async get(req: Request, res: Response, _ctx: Context): Promise<void> {
@@ -93,7 +87,7 @@ export class ServeAsset extends Handler {
       }
       res.setHeader('Cache-Control', 'must-revalidate');
       res.setHeader('ETag', buffer.hash);
-    } else if (this.cacheAssets === false && req.url !== '/main.js' && req.url !== '/main.js.map') {
+    } else if (this.cacheAssets === false) {
       res.setHeader('Cache-Control', 'max-age=' + this.cacheAgeSeconds);
     }
 
@@ -121,6 +115,9 @@ export class ServeAsset extends Handler {
       res.setHeader('Content-Length', data.length);
       res.end(data);
     } catch (err) {
+      if ((err as {code?: string}).code === 'ENOENT') {
+        throw RouteError.notFound();
+      }
       console.log(err);
       throw RouteError.internalServerError('Cannot serve ' + path);
     }
@@ -129,32 +126,43 @@ export class ServeAsset extends Handler {
   // Page and PWA manifest carry this server's titles and name (TITLE_LONG, TITLE_SHORT, SERVER_NAME)
   private withIdentity(file: string, raw: Buffer): Buffer {
     switch (file) {
-    case 'assets/index.html':
+    case 'build/index.html':
       return Buffer.from(withServerIdentity(raw.toString('utf8')));
     case 'assets/pwa/manifest.webmanifest':
       return Buffer.from(withManifestIdentity(raw.toString('utf8')));
     default:
+      if (file.startsWith('build/assets/') && file.endsWith('.webmanifest')) {
+        return Buffer.from(withManifestIdentity(raw.toString('utf8')));
+      }
       return raw;
     }
   }
 
-  // file: a fixed build file, or a chunk path already resolved and checked to lie inside build/chunks
+  private exists(file: string): boolean {
+    const cached = this.existsCache.get(file);
+    if (cached !== undefined) {
+      return cached;
+    }
+    const exists = this.fileApi.existsSync(file);
+    this.existsCache.set(file, exists);
+    return exists;
+  }
+
   private toMainFile(file: string, encodings: Set<Encoding>): { file?: string, encoding?: Encoding } {
     // Only serve compressed versions in production. Development mode serves
     // uncompressed versions because they can be hot-swapped.
     if (isProduction()) {
-      if (encodings.has('br')) {
+      if (encodings.has('br') && this.exists(file + '.br')) {
         return {file: file + '.br', encoding: 'br'};
-      } else if (encodings.has('gzip')) {
+      } else if (encodings.has('gzip') && this.exists(file + '.gz')) {
         return {file: file + '.gz', encoding: 'gzip'};
       }
     }
 
-    // Fallback on uncompressed file if in development or no compressed
-    // file exists.
+    // Fallback on uncompressed file in development or when the compression
+    // step skipped this file (source maps, for example).
     return {file, encoding: undefined};
   }
-
 
   private toFile(urlPath: string, encodings: Set<Encoding>): { file?: string, encoding?: Encoding } {
     // Fixed files: the path read from disk is the constant from the list, never the request path itself
@@ -163,22 +171,6 @@ export class ServeAsset extends Handler {
       return {file: fixedFile};
     }
     switch (urlPath) {
-    case 'styles.css':
-      if (encodings.has('br')) {
-        return {file: 'build/styles.css.br', encoding: 'br'};
-      }
-      if (encodings.has('gzip')) {
-        return {file: 'build/styles.css.gz', encoding: 'gzip'};
-      }
-      return {file: 'build/styles.css'};
-
-    // Source maps are not served: they would publish the full source with comments, including optional
-    // extensions that are not part of the public repository
-    case 'main.js':
-      return this.toMainFile('build/main.js', encodings);
-    case 'vendors.js':
-      return this.toMainFile('build/vendors.js', encodings);
-
     // Service worker (client/sw.ts): lobby push messages, and the notification fallback of the game
     case 'sw.js':
     case '/sw.js':
@@ -189,10 +181,18 @@ export class ServeAsset extends Handler {
       return {file: faviconFile(process.env.FAVICON_ICON, process.env.FAVICON_COLOR)};
 
     default:
-      // Serve JS chunks produced by webpack code splitting.
+      // The hashed entry file and stylesheet emitted by Vite (named in build/index.html).
+      if (/^main-[A-Za-z0-9_-]+\.js$/.test(urlPath)) {
+        return this.toMainFile(`build/${urlPath}`, encodings);
+      }
+      if (/^client-[A-Za-z0-9_-]+\.css$/.test(urlPath)) {
+        return this.toMainFile(`build/${urlPath}`, encodings);
+      }
+      // Serve JS chunks produced by the Vite build, but never source maps.
       if (urlPath.startsWith('chunks/')) {
         const chunksRoot = path.resolve('./build/chunks');
         const resolvedFile = path.resolve(path.normalize('build/' + urlPath));
+        // With the separator: a sibling such as build/chunks-other is not inside
         if (resolvedFile.startsWith(chunksRoot + path.sep)) {
           if (urlPath.endsWith('.js')) {
             // The checked, resolved path – not the request path – reaches the file system
@@ -201,7 +201,16 @@ export class ServeAsset extends Handler {
         }
       }
 
-      if (urlPath.endsWith('.png') || urlPath.endsWith('.jpg') || urlPath.endsWith('.webp') || urlPath.endsWith('.avif') || urlPath.endsWith('.json') || urlPath.endsWith('.svg') || urlPath.endsWith('.woff2')) {
+      if (urlPath.endsWith('.png') || urlPath.endsWith('.jpg') || urlPath.endsWith('.webp') || urlPath.endsWith('.avif') || urlPath.endsWith('.json') || urlPath.endsWith('.svg') || urlPath.endsWith('.woff2') || urlPath.endsWith('.webmanifest')) {
+        // Images referenced from component CSS are emitted by Vite (hashed) into build/assets and
+        // take precedence over the original file in the assets directory.
+        if (urlPath.startsWith('assets/')) {
+          const buildAssetsRoot = path.resolve('./build/assets');
+          const buildFile = path.resolve(path.normalize('build/' + urlPath));
+          if (buildFile.startsWith(buildAssetsRoot + path.sep) && this.exists(buildFile)) {
+            return {file: buildFile};
+          }
+        }
         const assetsRoot = path.resolve('./assets');
         const resolvedFile = path.resolve(path.normalize(urlPath));
 

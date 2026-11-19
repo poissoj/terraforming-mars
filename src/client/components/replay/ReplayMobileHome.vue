@@ -130,7 +130,7 @@ async function showFocusedCard(): Promise<void> {
   // The screen was hidden until now: wait for its layout before scrolling
   await new Promise((resolve) => requestAnimationFrame(resolve));
   const section = turnSection.value;
-  if (section !== undefined) {
+  if (section !== undefined && section !== null) {
     showCardInGrid(section, (card) => card.classList.contains(FOCUS_CLASS) || card.querySelector('.' + FOCUS_CLASS) !== null, false);
   }
 }

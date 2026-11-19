@@ -169,7 +169,7 @@ import {setDocumentTitle} from '@/client/utils/documentTitle';
 import {describeFailure, failureOf} from '@/client/utils/requestFailure';
 import {showAlert} from '@/client/components/showAlert';
 
-const CreateGameForm = defineAsyncComponent(() => import(/* webpackChunkName: "create-game" */ '@/client/components/create/CreateGameForm.vue'));
+const CreateGameForm = defineAsyncComponent(() => import('@/client/components/create/CreateGameForm.vue'));
 
 // Polling: the list doubles as heartbeat of the own seat (server drops seats after 45 s without it)
 const POLL_MS = 2500;

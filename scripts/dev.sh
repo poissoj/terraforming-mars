@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs all dev watchers at once: server, client, CSS, and card JSON.
+# Runs all dev watchers at once: server, Vite (client and CSS), and card JSON.
 # Ctrl+C stops all of them.
 set -euo pipefail
 
@@ -21,7 +21,6 @@ npm run make:extensions
 
 npm run dev:server & pids+=($!)
 npm run dev:client & pids+=($!)
-npm run watch:less & pids+=($!)
 npm run watch:cards & pids+=($!)
 
 wait
