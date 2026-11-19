@@ -1,5 +1,5 @@
 <template>
-  <div class="ma-block">
+  <div :class="rootClasses">
     <div class="ma-player" v-if="award.playerName">
       <BoardCube v-if="award.color !== undefined" :title="award.playerName" class="board-cube" :color="award.color" view="slight" />
     </div>
@@ -82,6 +82,19 @@ export default defineComponent({
   computed: {
     typedRefs(): Refs {
       return this.$refs as unknown as Refs;
+    },
+    rootClasses(): Array<string> {
+      const classes = ['ma-block'];
+      if (this.award.playerName !== undefined) {
+        classes.push('ma-block--claimed');
+        if (this.award.color !== undefined) {
+          classes.push(`ma-block--claimed-${this.award.color}`);
+        }
+      }
+      if (!this.showScores || this.sortedScores.length === 0) {
+        classes.push('ma-block--no-scores');
+      }
+      return classes;
     },
     nameCss(): string {
       return 'ma-name--' + this.award.name.replaceAll(' ', '-').replaceAll('.', '').toLowerCase();
