@@ -3,7 +3,7 @@
   <li v-for="entry in entries" :key="entry.color" :class="['log-ai-thinking', 'log-line--' + entry.color]" role="status">
     <span class="log-ai-thinking-spinner" aria-hidden="true"></span>
     <span class="log-line-content">{{ parts(entry).before }}<span class="log-player" :class="'player_bg_color_' + entry.color">{{ playerName(entry.color) }}</span>{{ parts(entry).after }}<span class="log-ai-thinking-dots" aria-hidden="true"><span>.</span><span>.</span><span>.</span></span></span>
-    <span v-if="millisecondsLeft(entry) > 0" class="log-ai-thinking-countdown">{{ millisecondsLeft(entry) }}</span>
+    <AiThinkingCountdown :at="deadlineOf(entry)" />
   </li>
 </template>
 
@@ -13,20 +13,17 @@ import {AiThinkingModel} from '@/common/ai/AiThinking';
 import {PublicPlayerModel} from '@/common/models/PlayerModel';
 import {Color} from '@/common/Color';
 import {translateText} from '@/client/directives/i18n';
-
-// The countdown needs no more: higher rates only cost frames, the last digits can't be read anyway
-const COUNTDOWN_FRAMES_PER_SECOND = 30;
-const COUNTDOWN_FRAME_MS = 1000 / COUNTDOWN_FRAMES_PER_SECOND;
+import {aiThinkingNow} from '@/client/utils/aiThinkingClock';
+import AiThinkingCountdown from './AiThinkingCountdown.vue';
 
 type DataModel = {
-  now: number,
   // Local end of the thinking time per seat: counted from the moment the server's answer arrived (no clock sync needed)
   deadlines: Map<string, {text: string, at: number}>,
-  frame: number | undefined,
 };
 
 export default defineComponent({
   name: 'LogAiThinking',
+  components: {AiThinkingCountdown},
   props: {
     entries: {
       type: Array as PropType<ReadonlyArray<AiThinkingModel>>,
@@ -38,13 +35,14 @@ export default defineComponent({
     },
   },
   data(): DataModel {
-    return {now: Date.now(), deadlines: new Map(), frame: undefined};
+    return {deadlines: new Map()};
   },
   watch: {
     entries: {
       immediate: true,
       handler(entries: ReadonlyArray<AiThinkingModel>) {
         const now = Date.now();
+        aiThinkingNow.value = now;
         const next = new Map<string, {text: string, at: number}>();
         for (const entry of entries) {
           // The same decision keeps its first deadline: later polls would only shift it by the network delay
@@ -52,43 +50,10 @@ export default defineComponent({
           next.set(entry.color, known?.text === entry.text ? known : {text: entry.text, at: now + entry.remainingMs});
         }
         this.deadlines = next;
-        this.now = now;
-        // Count only while a line shows: an endless per-frame update forced the whole page to be composited anew in
-        // every frame, which dropped frames (visible as flicker) even when no AI was thinking
-        if (entries.length > 0) {
-          this.startTicking();
-        } else {
-          this.stopTicking();
-        }
       },
     },
   },
-  unmounted() {
-    this.stopTicking();
-  },
   methods: {
-    // Milliseconds count down at COUNTDOWN_FRAMES_PER_SECOND, until the countdown has reached 0
-    startTicking(): void {
-      if (this.frame !== undefined) {
-        return;
-      }
-      const tick = () => {
-        const now = Date.now();
-        const running = [...this.deadlines.values()].some((deadline) => deadline.at > now);
-        // The last step always shows: the countdown ends on 0, not on a value from the previous update
-        if (!running || now - this.now >= COUNTDOWN_FRAME_MS) {
-          this.now = now;
-        }
-        this.frame = running ? window.requestAnimationFrame(tick) : undefined;
-      };
-      this.frame = window.requestAnimationFrame(tick);
-    },
-    stopTicking(): void {
-      if (this.frame !== undefined) {
-        window.cancelAnimationFrame(this.frame);
-        this.frame = undefined;
-      }
-    },
     playerName(color: Color): string {
       return this.players.find((player) => player.color === color)?.name ?? color;
     },
@@ -97,9 +62,8 @@ export default defineComponent({
       const [before, after = ''] = translateText(entry.text).split('${0}');
       return {before, after};
     },
-    millisecondsLeft(entry: AiThinkingModel): number {
-      const at = this.deadlines.get(entry.color)?.at ?? 0;
-      return Math.max(0, Math.round(at - this.now));
+    deadlineOf(entry: AiThinkingModel): number {
+      return this.deadlines.get(entry.color)?.at ?? 0;
     },
   },
 });
