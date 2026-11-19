@@ -16,6 +16,7 @@ import {startThinking, stopThinking} from './aiThinking';
 import {rustBotStrength} from '../../common/ai/rustBotStrength';
 import {AiStandIn, aiStandIns} from './aiStandIns';
 import {aiAdminSettings} from './aiEngineChoice';
+import {warnAggregated} from '../utils/aggregatedWarn';
 
 // Plays the moves of AI players on the server. Player.setWaitingFor reports every new input of
 // an AI player; the move is made a little later so humans can follow the game.
@@ -26,6 +27,9 @@ import {aiAdminSettings} from './aiEngineChoice';
 // same move: they wait at most FOLLOW_UP_MILLISECONDS, enough to follow a placement.
 const FOLLOW_UP_MILLISECONDS = 1000;
 const RANDOM_ATTEMPTS = 50;
+// An input that failed all fallbacks must not be scheduled again by the setWaitingFor hook.
+const processingInputs = new WeakSet<PlayerInput>();
+const failedInputs = new WeakSet<PlayerInput>();
 
 /** The AI's answer to one input and whether the Rust AI gave it. */
 export type AiAnswer = {chosen: InputResponse | undefined, fromRust: boolean};
@@ -35,45 +39,53 @@ export type AiAnswer = {chosen: InputResponse | undefined, fromRust: boolean};
  * Rust answer the TypeScript AI, recorded as a fallback; then a quick answer) and finally random answers, so the game
  * never stops.
  */
-export function processWithFallback(player: Pick<IPlayer, 'process' | 'getWaitingFor' | 'name' | 'game'>, input: PlayerInput, answer: AiAnswer,
+export function processWithFallback(player: Pick<IPlayer, 'process' | 'getWaitingFor' | 'name' | 'game' | 'id'>, input: PlayerInput, answer: AiAnswer,
   standIns: ReadonlyArray<AiStandIn>, onRustRefused: (reason: string) => void): void {
-  const {chosen, fromRust} = answer;
-  if (chosen !== undefined) {
-    try {
-      player.process(chosen);
-      return;
-    } catch (error) {
-      if (player.getWaitingFor() !== input) {
-        return; // the input was answered after all
-      }
-      if (fromRust) {
-        onRustRefused('the game refused its answer: ' + (error as Error).message);
-      }
-    }
-  }
-  for (const standIn of standIns) {
-    try {
-      const response = standIn.answer();
-      if (response === undefined) {
-        throw new Error(`no ${standIn.name} answer`);
-      }
-      player.process(response);
-      return;
-    } catch (error) {
-      if (player.getWaitingFor() !== input) {
-        return; // the input was answered after all
+  processingInputs.add(input);
+  try {
+    const {chosen, fromRust} = answer;
+    if (chosen !== undefined) {
+      try {
+        player.process(chosen);
+        return;
+      } catch (error) {
+        if (player.getWaitingFor() !== input) {
+          return; // the input was answered after all
+        }
+        if (fromRust) {
+          onRustRefused('the game refused its answer: ' + (error as Error).message);
+        }
       }
     }
-  }
-  for (let attempt = 0; attempt < RANDOM_ATTEMPTS; attempt++) {
-    try {
-      player.process(randomResponse(input, player as IPlayer, Math.random));
-      return;
-    } catch {
-      // try another random answer
+    for (const standIn of standIns) {
+      try {
+        const response = standIn.answer();
+        if (response === undefined) {
+          throw new Error(`no ${standIn.name} answer`);
+        }
+        player.process(response);
+        return;
+      } catch (error) {
+        if (player.getWaitingFor() !== input) {
+          return; // the input was answered after all
+        }
+      }
     }
+    for (let attempt = 0; attempt < RANDOM_ATTEMPTS; attempt++) {
+      try {
+        player.process(randomResponse(input, player as IPlayer, Math.random));
+        return;
+      } catch {
+        // try another random answer
+      }
+    }
+    failedInputs.add(input);
+    warnAggregated(
+      `ai-could-not-answer:${player.game.id}:${player.id}:${input.type}`,
+      `AI player ${player.name} could not answer input ${input.type} in game ${player.game.id}`);
+  } finally {
+    processingInputs.delete(input);
   }
-  console.warn(`AI player ${player.name} could not answer input ${input.type} in game ${player.game.id}`);
 }
 
 type Choice = AiAnswer & {summary: ReturnType<typeof takeAiDecisionSummary>};
@@ -160,7 +172,7 @@ function scheduleAiMove(player: IPlayer): void {
     return; // AI players inside game copies are moved by the lookahead, not here
   }
   const input = player.getWaitingFor();
-  if (input === undefined) {
+  if (input === undefined || processingInputs.has(input) || failedInputs.has(input)) {
     return;
   }
   // After its draft pick the AI is offered to change it while the others still choose. Answering
