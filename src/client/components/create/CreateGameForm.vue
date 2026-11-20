@@ -359,9 +359,11 @@
                   <div v-if="newPlayer.aiLevel !== undefined" class="create-game-ai-settings">
                     <span v-i18n>Strength</span>
                     <SegmentedControl v-model="newPlayer.aiLevel" :options="AI_LEVEL_OPTIONS" class="create-game-segmented--equal" />
-                    <span v-i18n>Version</span>
-                    <SegmentedControl :model-value="newPlayer.aiEngine ?? DEFAULT_AI_ENGINE" :options="aiEngineOptions"
-                      class="create-game-segmented--equal" @update:model-value="newPlayer.aiEngine = $event" />
+                    <template v-if="newAiSelectable">
+                      <span v-i18n>Version</span>
+                      <SegmentedControl :model-value="newPlayer.aiEngine ?? DEFAULT_AI_ENGINE" :options="aiEngineOptions"
+                        class="create-game-segmented--equal" @update:model-value="newPlayer.aiEngine = $event" />
+                    </template>
                   </div>
                   <div class="create-game-player-extra">
                     <!-- The beginner corporation is a help for humans; AI players do not need it -->
@@ -908,6 +910,10 @@ export default defineComponent({
         }
         return {value: count, label: String(count)};
       });
+    },
+    // The version choice only exists when the new AI can actually play this setup.
+    newAiSelectable(): boolean {
+      return newAiAvailable.value && newAiUnsupportedReasons({expansions: this.expansions}).length === 0;
     },
     // Version of an AI seat: the new AI only where the server has it and knows the settings; the hover says why not
     aiEngineOptions(): ReadonlyArray<SegmentOption> {
