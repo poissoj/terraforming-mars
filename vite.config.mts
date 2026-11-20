@@ -1,13 +1,39 @@
 import path from 'node:path';
+import {buildSync} from 'esbuild';
 import {defineConfig, type Plugin} from 'vite';
 import vue from '@vitejs/plugin-vue';
 
-// The service worker is empty (see src/client/sw.ts) but must exist at /sw.js.
+// The service worker has its own bundle: it must not share chunks with the page entry.
+// It handles lobby pushes (src/client/sw.ts) and the notification fallback of the game.
+function serviceWorkerSource(): string {
+  const result = buildSync({
+    entryPoints: [path.resolve(import.meta.dirname, 'src/client/sw.ts')],
+    bundle: true,
+    write: false,
+    format: 'iife',
+    platform: 'browser',
+    target: 'es2021',
+    alias: {'@': path.resolve(import.meta.dirname, 'src')},
+    logLevel: 'silent',
+  });
+  const output = result.outputFiles?.[0];
+  if (output === undefined) {
+    throw new Error('esbuild produced no service worker bundle');
+  }
+  return output.text;
+}
+
 function serviceWorkerFile(): Plugin {
   return {
     name: 'terraforming-mars-service-worker',
     generateBundle() {
-      this.emitFile({type: 'asset', fileName: 'sw.js', source: ''});
+      this.emitFile({type: 'asset', fileName: 'sw.js', source: serviceWorkerSource()});
+    },
+    configureServer(server) {
+      server.middlewares.use('/sw.js', (_req, res) => {
+        res.setHeader('Content-Type', 'text/javascript');
+        res.end(serviceWorkerSource());
+      });
     },
   };
 }
@@ -38,16 +64,6 @@ export default defineConfig({
   plugins: [
     vue({template: {transformAssetUrls: false}}),
     serviceWorkerFile(),
-    {
-      // The real file is emitted by the production build; development serves an empty one
-      name: 'terraforming-mars-dev-service-worker',
-      configureServer(server) {
-        server.middlewares.use('/sw.js', (_req, res) => {
-          res.setHeader('Content-Type', 'text/javascript');
-          res.end('');
-        });
-      },
-    },
   ],
   publicDir: false,
   resolve: {

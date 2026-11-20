@@ -42,6 +42,7 @@
     "@vue/test-utils": "^2.0.0",
     "chai": "^6.2.2",
     "chai-as-promised": "^8.0.2",
+    "esbuild": "0.28.2",
     "eslint": "^10.0.0",
     "eslint-plugin-vue": "^10.8.0",
     "globals": "^17.12.0",
