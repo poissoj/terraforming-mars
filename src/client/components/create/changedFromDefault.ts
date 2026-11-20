@@ -18,6 +18,20 @@ const MILESTONE_KEYS = ['randomMA', 'modularMA', 'includeFanMA'] as const satisf
 
 const CARD_POOL_LIST_KEYS = ['customCorporations', 'customPreludes', 'customCeos', 'customColonies', 'bannedCards', 'includedCards'] as const satisfies ReadonlyArray<keyof CreateGameModel>;
 
+const HOUSE_RULE_KEYS = [
+  'twoCorpsVariant',
+  'soloTR',
+  'undoOption',
+  'showTimers',
+  'showOtherPlayersVP',
+  'fastModeOption',
+  'escapeVelocityMode',
+  'escapeVelocityThreshold',
+  'escapeVelocityBonusSeconds',
+  'escapeVelocityPeriod',
+  'escapeVelocityPenalty',
+] as const satisfies ReadonlyArray<keyof CreateGameModel>;
+
 function differs(model: CreateGameModel, keys: ReadonlyArray<keyof CreateGameModel>): boolean {
   return keys.some((key) => model[key] !== DEFAULTS[key]);
 }
@@ -33,4 +47,8 @@ export function milestonesChanged(model: CreateGameModel): boolean {
 
 export function cardPoolChanged(model: CreateGameModel): boolean {
   return model.seededGame || CARD_POOL_LIST_KEYS.some((key) => model[key].length > 0);
+}
+
+export function houseRulesChanged(model: CreateGameModel): boolean {
+  return differs(model, HOUSE_RULE_KEYS);
 }

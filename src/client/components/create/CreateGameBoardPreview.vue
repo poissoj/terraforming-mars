@@ -1,12 +1,7 @@
 <template>
   <div class="create-game-board-preview">
-    <!-- Random board: which board it became -->
-    <div v-if="preview !== undefined && showBoardName" class="create-game-board-preview-head">
-      <span :class="boardColorClass(preview.boardName)"></span>
-      <span class="capitalized" v-i18n>{{ preview.boardName }}</span>
-    </div>
     <ScaledBoard v-if="preview !== undefined" :class="{'create-game-board-preview--loading': loading}"
-      :spaces="preview.spaces" :boardName="preview.boardName" planetOnly :maxScale="MAX_SCALE" :maxPlanetShare="MAX_PLANET_SHARE" />
+      :spaces="preview.spaces" :boardName="preview.boardName" planetOnly :maxScale="MAX_SCALE" :maxPlanetShare="MAX_PLANET_SHARE" :maxHeight="MAX_HEIGHT" />
     <!-- New draw: bottom right next to the planet -->
     <button v-if="preview !== undefined && isRandom" type="button" class="create-game-icon-button create-game-board-preview-reroll"
       :title="$t('Draw again')" :aria-label="$t('Draw again')" @click="$emit('reroll')">
@@ -21,7 +16,6 @@ import {defineComponent, PropType} from 'vue';
 import {describeFailure, failureOf, fetchOrFail} from '@/client/utils/requestFailure';
 import {paths} from '@/common/app/paths';
 import {NewGameConfig} from '@/common/game/NewGameConfig';
-import {BoardName} from '@/common/boards/BoardName';
 import {BoardPreviewModel} from '@/common/models/BoardPreviewModel';
 import ScaledBoard from '@/client/components/board/ScaledBoard.vue';
 
@@ -31,6 +25,8 @@ const DEBOUNCE_MS = 150;
 const MAX_SCALE = 2;
 // ...but never wider than 90 % of the card, so it does not crowd the card's edges
 const MAX_PLANET_SHARE = 0.9;
+// The board card height must not follow the window width: on wide screens the planet would push the page down
+const MAX_HEIGHT = 400;
 
 /**
  * Board of the game being created, built by the server from the same settings and board seed as the game itself
@@ -44,15 +40,12 @@ export default defineComponent({
     config: {type: Object as PropType<NewGameConfig>, required: true},
     // Shown when the board or its bonuses are drawn: offers a new draw
     isRandom: {type: Boolean, default: false},
-    // Random board: name the drawn board
-    showBoardName: {type: Boolean, default: false},
-    // Color hexagon of a board, as on the board chips
-    boardColorClass: {type: Function as PropType<(boardName: BoardName) => string>, required: true},
   },
   data() {
     return {
       MAX_SCALE,
       MAX_PLANET_SHARE,
+      MAX_HEIGHT,
       preview: undefined as BoardPreviewModel | undefined,
       loading: false,
       failed: false,

@@ -1,96 +1,59 @@
-<!-- Popup listing every board, from which the player picks one. -->
+<!-- Popup with the board settings that used to live in the Board card. -->
 <template>
-  <PopupPanel class="create-game-board-popup" @close="close">
-    <template #header>
-      <h2 v-i18n>{{ multiple ? 'Select boards to be randomly chosen' : 'Select a board' }}</h2>
-    </template>
-    <div class="create-game-board-mode">
-      <template v-for="mode in MODES" :key="mode.id">
-        <input type="radio" name="boardMode" :value="mode.value" v-model="multiple" :id="mode.id" :disabled="!mode.value && selectedBoards.length > 1">
-        <label :for="mode.id" v-i18n>{{ mode.label }}</label>
-      </template>
-    </div>
-    <div class="create-game-board-groups">
-      <!-- separate groups for official and fan content -->
-      <div v-for="group in groups" :key="group.label" class="create-game-board-group">
-        <h3 v-i18n>{{ group.label }}</h3>
-        <div class="create-game-board-list">
-          <div v-for="boardName in group.boards" :key="boardName">
-            <input type="checkbox" :value="boardName" :checked="selectedBoards.includes(boardName)" @change="select(boardName, $event)" :id="boardName+'-checkbox'">
-            <label :for="boardName+'-checkbox'" class="expansion-button">
-              <span class="create-game-board-hexagon" :class="boardColorClass(boardName)">&#x2B22;</span>
-              <span class="capitalized" v-i18n>{{ boardName }}</span>
-              <template v-if="boardName === BoardName.AMAZONIS_PLANITIA">&nbsp;<span :title="$t('In development')">(α)</span></template>
-              &nbsp;<a :href="boardHref(boardName)" class="tooltip" v-i18n data-tooltip="Link opens in a new tab/window" target="_blank">&#9432;</a>
-            </label>
-          </div>
+  <SidebarModal :open="true" :framed="true" @close="close">
+    <DialogFrame :title="title" :width="760" class="create-game-board-popup" @close="close">
+      <div class="create-game-subhead" v-i18n>Random</div>
+      <OptionRow label="Random board">
+        <SwitchInput v-model="randomBoard" />
+      </OptionRow>
+      <SegmentedControl v-if="randomBoard" v-model="randomBoardScope" :options="RANDOM_BOARD_OPTIONS" />
+      <OptionRow label="Randomize board tiles" :href="WIKI_URLS.randomizeBoardTiles">
+        <SwitchInput v-model="shuffleMapDraft" />
+      </OptionRow>
+
+      <CollapsibleSection v-for="group in groups" :key="group.label"
+        variant="subhead" :title="group.label" :collapsible="group.fan"
+        storageKey="boardPopupFan" :defaultOpen="!group.fan">
+        <div class="create-game-chip-grid">
+          <ChoiceChip v-for="boardName in group.boards" :key="boardName"
+            :label="boardName" capitalized :selected="selectedBoards.includes(boardName)"
+            :data-test="'board-' + boardName" @select="selectBoard(boardName)">
+            <template #icon><span :class="boardColorClass(boardName)"></span></template>
+            <span v-if="ALPHA_BOARDS.includes(boardName)" class="create-game-alpha" :title="$t('Alpha — work in progress')">α</span>
+          </ChoiceChip>
         </div>
-        <button class="create-game-board-button create-game-board-random" @click="randomSelection(group.randomBoards)" v-i18n>{{ group.randomTitle }}</button>
-      </div>
-    </div>
-    <div class="create-game-board-shuffle">
-      <input type="checkbox" :checked="shuffleMap" @change="$emit('update:shuffleMap', ($event.target as HTMLInputElement).checked)" id="shuffleMap-checkbox">
-      <label for="shuffleMap-checkbox">
-        <span v-i18n>Randomize board tiles</span>&nbsp;<a :href="WIKI_URLS.randomizeBoardTiles" class="tooltip" v-i18n data-tooltip="Link opens in a new tab/window" target="_blank">&#9432;</a>
-      </label>
-      <button class="create-game-board-button create-game-board-clear" @click="clear" v-i18n>Clear</button>
-    </div>
-  </PopupPanel>
+      </CollapsibleSection>
+
+      <template #footer>
+        <button type="button" class="btn btn-primary" @click="validate" v-i18n>Apply</button>
+      </template>
+    </DialogFrame>
+  </SidebarModal>
 </template>
 
 <script setup lang="ts">
-import {ref} from 'vue';
-import PopupPanel from '@/client/components/common/PopupPanel.vue';
+import {computed, ref, watch} from 'vue';
+import CollapsibleSection from '@/client/components/create/CollapsibleSection.vue';
+import ChoiceChip from '@/client/components/create/ChoiceChip.vue';
+import DialogFrame from '@/client/components/DialogFrame.vue';
+import OptionRow from '@/client/components/create/OptionRow.vue';
+import SegmentedControl from '@/client/components/create/SegmentedControl.vue';
+import SidebarModal from '@/client/components/SidebarModal.vue';
+import SwitchInput from '@/client/components/create/SwitchInput.vue';
 import {BoardName} from '@/common/boards/BoardName';
-import {boardColorClass} from '@/client/components/create/boardOptions';
-import {WIKI, WIKI_URLS} from '@/client/utils/WikiLinks';
-import {inplaceRemove} from '@/common/utils/utils';
 import {RandomBoardOption} from '@/common/boards/RandomBoardOption';
+import {randomOptionOf} from '@/common/boards/boardPool';
 import {boardOptions} from '@/common/boards/randomBoardOptions';
-
-type BoardGroup = {
-  label: string;
-  boards: ReadonlyArray<BoardName>;
-  randomTitle: string;
-  /** Boards selected by this group's random button. */
-  randomBoards: ReadonlyArray<BoardName>;
-};
-
-/** Anchor on the wiki's Maps page for each board. */
-const WIKI_ANCHORS: Record<BoardName, string> = {
-  [BoardName.THARSIS]: 'tharsis',
-  [BoardName.HELLAS]: 'hellas',
-  [BoardName.ELYSIUM]: 'elysium',
-  [BoardName.ARABIA_TERRA]: 'arabia-terra',
-  [BoardName.UTOPIA_PLANITIA]: 'utopia-planitia',
-  [BoardName.VASTITAS_BOREALIS_NOVA]: 'vastitas-borealis-nova',
-  [BoardName.VASTITAS_BOREALIS]: 'vastitas-borealis',
-  [BoardName.AMAZONIS]: 'amazonis-p',
-  [BoardName.TERRA_CIMMERIA]: 'terra-cimmeria',
-  [BoardName.TERRA_CIMMERIA_NOVA]: 'terra-cimmeria-nova',
-  [BoardName.HOLLANDIA]: 'hollandia',
-  [BoardName.AMAZONIS_PLANITIA]: 'amazonis-planitia',
-};
+import {WIKI_URLS} from '@/client/utils/WikiLinks';
+import {translateText} from '@/client/directives/i18n';
+import {boardColorClass} from '@/client/components/create/boardColorClass';
+import {ALPHA_BOARDS, RANDOM_BOARD_OPTIONS} from '@/client/components/create/createGameChoices';
 
 const props = defineProps<{
   boards: Array<BoardName>;
   /** True when the board's tiles are randomized. */
   shuffleMap: boolean;
 }>();
-
-/** Boards currently checked in the popup. */
-const selectedBoards = ref<Array<BoardName>>([...props.boards]);
-
-/** True when several boards may be checked, false when checking a board replaces the selection. */
-const multiple = ref(props.boards.length > 1);
-
-const MODES = [
-  {value: false, label: 'One', id: 'boardMode-one-radio'},
-  {value: true, label: 'Many', id: 'boardMode-many-radio'},
-] as const;
-
-/** Boards checked when the popup opened, restored if it closes with none checked. */
-const originalBoards: ReadonlyArray<BoardName> = [...props.boards];
 
 const emit = defineEmits<{
   'update:boards': [value: Array<BoardName>];
@@ -116,127 +79,70 @@ const FAN_GROUP_BOARDS = [
   BoardName.HOLLANDIA,
 ] as const;
 
-const groups: ReadonlyArray<BoardGroup> = [
-  {
-    label: 'Official',
-    boards: OFFICIAL_GROUP_BOARDS,
-    randomTitle: 'Random Official',
-    randomBoards: boardOptions(RandomBoardOption.OFFICIAL),
-  },
-  {
-    label: 'Fan-made',
-    boards: FAN_GROUP_BOARDS,
-    randomTitle: 'Random All',
-    randomBoards: [...OFFICIAL_GROUP_BOARDS, ...FAN_GROUP_BOARDS],
-  },
-] as const;
+const groups: ReadonlyArray<{label: string, boards: ReadonlyArray<BoardName>, fan: boolean}> = [
+  {label: 'Official', boards: OFFICIAL_GROUP_BOARDS, fan: false},
+  {label: 'Fan-made', boards: FAN_GROUP_BOARDS, fan: true},
+];
 
-/** The wiki URL describing `boardName`. */
-function boardHref(boardName: BoardName): string {
-  return `${WIKI}/Maps#${WIKI_ANCHORS[boardName]}`;
-}
+const initialBoards = props.boards.length > 0 ? [...props.boards] : [BoardName.THARSIS];
+const selectedBoards = ref<Array<BoardName>>(initialBoards);
+const randomBoard = ref(props.boards.length > 1);
+const shuffleMapDraft = ref(props.shuffleMap);
+const lastFixedBoard = ref<BoardName>(initialBoards[0] ?? BoardName.THARSIS);
 
-function select(boardName: BoardName, event: Event) {
-  if (!multiple.value) {
-    // The checkbox toggled itself, so keep it checked when it was already the only board.
-    (event.target as HTMLInputElement).checked = true;
+// Same behavior as the old Board card: the switch replaces a fixed board by the official pool,
+// and switching it off brings the last fixed board back.
+watch(randomBoard, (random) => {
+  if (random) {
+    lastFixedBoard.value = selectedBoards.value[0] ?? lastFixedBoard.value;
+    selectedBoards.value = boardOptions(RandomBoardOption.OFFICIAL);
+  } else {
+    selectedBoards.value = [lastFixedBoard.value];
+  }
+});
+
+const randomBoardScope = computed({
+  get(): string {
+    return randomOptionOf(selectedBoards.value) ?? '';
+  },
+  set(scope: string) {
+    selectedBoards.value = boardOptions(scope as RandomBoardOption);
+  },
+});
+
+const title = computed(() => translateText(randomBoard.value ? 'Select boards to be randomly chosen' : 'Select a board'));
+
+function selectBoard(boardName: BoardName): void {
+  if (!randomBoard.value) {
     selectedBoards.value = [boardName];
-  } else if (!inplaceRemove(selectedBoards.value, boardName)) {
-    selectedBoards.value.push(boardName);
+    lastFixedBoard.value = boardName;
+    return;
   }
-  emit('update:boards', [...selectedBoards.value]);
-}
-
-/** Selects every board in a section, so one of them is picked at random. */
-function randomSelection(boards: ReadonlyArray<BoardName>) {
-  selectedBoards.value = [...boards];
-  multiple.value = true;
-  emit('update:boards', [...selectedBoards.value]);
-}
-
-/** Resets the selection to Tharsis. */
-function clear() {
-  selectedBoards.value = [BoardName.THARSIS];
-  multiple.value = false;
-  emit('update:boards', [...selectedBoards.value]);
-}
-
-/** Closes the popup, falling back to the original boards, then Tharsis, when none are checked. */
-function close() {
-  if (selectedBoards.value.length === 0) {
-    const boards = originalBoards.length > 0 ? originalBoards : [BoardName.THARSIS];
-    emit('update:boards', [...boards]);
+  if (!selectedBoards.value.includes(boardName)) {
+    selectedBoards.value = [...selectedBoards.value, boardName];
+    return;
   }
+  const remaining = selectedBoards.value.filter((other) => other !== boardName);
+  // Keep at least one board selected.
+  if (remaining.length > 0) {
+    selectedBoards.value = remaining;
+  }
+}
+
+function validate(): void {
+  emit('update:boards', [...selectedBoards.value]);
+  emit('update:shuffleMap', shuffleMapDraft.value);
+  emit('close');
+}
+
+function close(): void {
   emit('close');
 }
 </script>
 
 <style scoped lang="less">
-@import (reference) '../../../styles/variables.less';
-
-// Sized to its two board sections rather than most of the screen.
-.create-game-board-popup :deep(.popup-inner) {
-  width: auto;
-  max-width: 90vw;
-  height: auto;
-  max-height: 90vh;
-}
-
-.create-game-board-mode {
-  display: flex;
-  margin-bottom: 12px;
-
-  // Dimmed, and without the hover highlight, so it reads as unclickable.
-  input:disabled + label,
-  input:disabled + label:hover {
-    background-color: @grey_850;
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
-.create-game-board-groups {
-  display: flex;
-  flex-flow: row wrap;
-  gap: 20px;
-}
-
-.create-game-board-group {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid @grey_850;
-  border-radius: 8px;
-  padding: 10px;
-
-  h3 {
-    margin: 0 4px 6px;
-  }
-}
-
-// Grows so the random buttons line up across sections.
-.create-game-board-list {
-  flex-grow: 1;
-}
-
-// Matches PopupPanel's close button.
-.create-game-board-button {
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.create-game-board-random {
-  margin-top: 8px;
-}
-
-.create-game-board-shuffle {
-  display: flex;
-  align-items: center;
-  margin-top: 12px;
-}
-
-// Pushed to the far right, away from the shuffle checkbox.
-.create-game-board-clear {
-  margin-left: auto;
+// Same spacing as the former settings card, rather than the dialog body's section gaps.
+.create-game-board-popup :deep(.dialog-frame-body) {
+  gap: 0;
 }
 </style>

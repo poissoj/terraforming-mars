@@ -5,8 +5,6 @@ import CreateGameForm from '@/client/components/create/CreateGameForm.vue';
 import {createGameSettingsStorage} from '@/client/components/create/createGameSettingsStorage';
 import {useFakeLocalStorage} from '../FakeLocalStorage';
 import {BoardName} from '@/common/boards/BoardName';
-import {RandomBoardOption} from '@/common/boards/RandomBoardOption';
-import {boardOptions} from '@/common/boards/randomBoardOptions';
 import {DEFAULT_EXPANSIONS} from '@/common/cards/GameModule';
 import {JSONObject} from '@/common/Types';
 import {defineComponent, nextTick} from 'vue';
@@ -251,38 +249,13 @@ describe('CreateGameForm', () => {
     expect(again.vm.expansionGrouping).eq('corporation');
   });
 
-  it('random board is a switch: on draws from the official boards, off restores the chosen board', async () => {
-    const wrapper = shallowMount(CreateGameForm, {
-      ...globalConfig,
-    });
+  it('a single board is fixed; a board pool is random', () => {
+    const wrapper = shallowMount(CreateGameForm, {...globalConfig});
     const vm = wrapper.vm;
-    vm.selectBoard(BoardName.ELYSIUM);
-    await nextTick();
-    expect(vm.boards).deep.eq([BoardName.ELYSIUM]);
-    vm.randomBoard = true;
-    expect(vm.boards).deep.eq(boardOptions(RandomBoardOption.OFFICIAL));
-    expect(vm.randomBoardScope).eq('random official');
-    vm.randomBoardScope = 'random all';
-    expect(vm.boards).deep.eq(boardOptions(RandomBoardOption.ALL));
-    await nextTick();
-    vm.randomBoard = false;
-    expect(vm.boards).deep.eq([BoardName.ELYSIUM]);
-  });
-
-  it('random board: chips add boards to the pool and take them out again', async () => {
-    const wrapper = shallowMount(CreateGameForm, {
-      ...globalConfig,
-    });
-    const vm = wrapper.vm;
-    vm.randomBoard = true;
-    vm.selectBoard(BoardName.HOLLANDIA);
-    expect(vm.boards).includes(BoardName.HOLLANDIA);
-    expect(vm.randomBoardScope).eq('');
-    vm.boards = [BoardName.HELLAS, BoardName.ELYSIUM];
-    vm.selectBoard(BoardName.HELLAS);
-    // The last board left is a fixed board again
-    expect(vm.boards).deep.eq([BoardName.ELYSIUM]);
+    vm.boards = [BoardName.ELYSIUM];
     expect(vm.randomBoard).is.false;
+    vm.boards = [BoardName.ELYSIUM, BoardName.HELLAS];
+    expect(vm.randomBoard).is.true;
   });
 
   it('prefers settings from the link hash over saved settings', async () => {
@@ -632,14 +605,5 @@ describe('CreateGameForm', () => {
       penaltyPeriodMinutes: 2,
       penaltyVPPerPeriod: 1,
     });
-  });
-
-  it('offers Amazonis Planitia with the official boards in every build', () => {
-    const wrapper = shallowMount(CreateGameForm, {
-      ...globalConfig,
-    });
-    const groups = wrapper.vm.boardGroups;
-    expect(groups[0].boards).includes(BoardName.AMAZONIS_PLANITIA);
-    expect(groups[1].boards).not.includes(BoardName.AMAZONIS_PLANITIA);
   });
 });

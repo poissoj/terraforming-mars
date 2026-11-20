@@ -31,6 +31,8 @@ export default defineComponent({
     maxScale: {type: Number, default: 1},
     // Planet alone: largest share of the container width the planet itself may take (1 = full width)
     maxPlanetShare: {type: Number, default: 1},
+    // Optional height cap in px: on wide containers the board otherwise grows with the available width
+    maxHeight: {type: Number, default: undefined},
   },
   data() {
     return {
@@ -108,7 +110,10 @@ export default defineComponent({
         return;
       }
       const planetLimit = this.planetOnly ? this.maxPlanetShare * available / this.planetBounds.width : Infinity;
-      this.scale = Math.min(this.maxScale, available / this.naturalWidth, planetLimit);
+      const heightLimit = this.maxHeight === undefined || this.planetBounds.height <= 0
+        ? Infinity
+        : this.maxHeight / this.planetBounds.height;
+      this.scale = Math.min(this.maxScale, available / this.naturalWidth, planetLimit, heightLimit);
     },
   },
 });

@@ -37,4 +37,13 @@ describe('ScaledBoard', () => {
     vm.fitToWidth();
     expect(vm.scale).to.be.closeTo(0.9, 0.001);
   });
+
+  it('keeps the planet within maxHeight', () => {
+    const wrapper = shallowMount(ScaledBoard, {...globalConfig, props: {spaces: [], boardName: BoardName.THARSIS, planetOnly: true, maxScale: 2, maxPlanetShare: 1, maxHeight: 200}});
+    const vm = wrapper.vm as any;
+    vm.naturalWidth = 449;
+    Object.defineProperty(vm.$refs.root, 'clientWidth', {value: 1000});
+    vm.fitToWidth();
+    expect(vm.scale).to.be.closeTo(200 / 449, 0.001);
+  });
 });
