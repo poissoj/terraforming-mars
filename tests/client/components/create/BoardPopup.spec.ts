@@ -3,167 +3,89 @@ import {expect} from 'chai';
 import {globalConfig} from '../getLocalVue';
 import BoardPopup from '@/client/components/create/BoardPopup.vue';
 import {BoardName} from '@/common/boards/BoardName';
+import {RandomBoardOption} from '@/common/boards/RandomBoardOption';
+import {boardOptions} from '@/common/boards/randomBoardOptions';
 
 function mountPopup(boards = [BoardName.THARSIS], shuffleMap: boolean = false) {
   return mount(BoardPopup, {
     ...globalConfig,
+    global: {
+      ...globalConfig.global,
+      stubs: {...globalConfig.global.stubs, teleport: true},
+    },
     props: {boards, shuffleMap},
   });
 }
 
-function checkbox(wrapper: ReturnType<typeof mountPopup>, board: BoardName) {
-  return wrapper.find<HTMLInputElement>(`input[type="checkbox"][value="${board}"]`);
+function board(wrapper: ReturnType<typeof mountPopup>, boardName: BoardName) {
+  return wrapper.find(`[data-test="board-${boardName}"]`);
+}
+
+function switches(wrapper: ReturnType<typeof mountPopup>) {
+  return wrapper.findAll<HTMLInputElement>('.create-game-switch');
 }
 
 describe('BoardPopup', () => {
   it('mounts without errors', () => {
-    const wrapper = mountPopup();
-    expect(wrapper.exists()).to.be.true;
+    expect(mountPopup().exists()).to.be.true;
   });
 
   it('checks the current board', () => {
     const wrapper = mountPopup([BoardName.HELLAS]);
-    expect(checkbox(wrapper, BoardName.HELLAS).element.checked).is.true;
-    expect(checkbox(wrapper, BoardName.THARSIS).element.checked).is.false;
+    expect(board(wrapper, BoardName.HELLAS).classes()).includes('create-game-chip--selected');
+    expect(board(wrapper, BoardName.THARSIS).classes()).not.includes('create-game-chip--selected');
+    expect(board(wrapper, BoardName.HELLAS).find('.create-game-board-hexagon').exists()).is.true;
   });
 
-  it('adds the selected board and stays open', async () => {
+  it('a fixed board replaces the selection', async () => {
     const wrapper = mountPopup();
-    await wrapper.find('#boardMode-many-radio').setValue();
-    await checkbox(wrapper, BoardName.ELYSIUM).setValue();
-    expect(wrapper.emitted('update:boards')).to.deep.eq([[[BoardName.THARSIS, BoardName.ELYSIUM]]]);
-    expect(wrapper.emitted('close')).is.undefined;
-  });
-
-  for (const run of [
-    {boards: [BoardName.THARSIS], multiple: false},
-    {boards: [BoardName.THARSIS, BoardName.HELLAS], multiple: true},
-  ] as const) {
-    it(`starts in one or many mode based on the boards ${JSON.stringify(run)}`, () => {
-      const wrapper = mountPopup([...run.boards]);
-      expect(wrapper.find<HTMLInputElement>('#boardMode-one-radio').element.checked).eq(!run.multiple);
-      expect(wrapper.find<HTMLInputElement>('#boardMode-many-radio').element.checked).eq(run.multiple);
-    });
-  }
-
-  it('in one mode, selecting a board replaces the selection', async () => {
-    const wrapper = mountPopup();
-    await checkbox(wrapper, BoardName.ELYSIUM).setValue();
-    expect(wrapper.emitted('update:boards')).to.deep.eq([[[BoardName.ELYSIUM]]]);
-    expect(checkbox(wrapper, BoardName.ELYSIUM).element.checked).is.true;
-    expect(checkbox(wrapper, BoardName.THARSIS).element.checked).is.false;
-  });
-
-  it('in one mode, selecting the selected board keeps it', async () => {
-    const wrapper = mountPopup();
-    await checkbox(wrapper, BoardName.THARSIS).setValue(false);
-    expect(wrapper.emitted('update:boards')).to.deep.eq([[[BoardName.THARSIS]]]);
-    expect(checkbox(wrapper, BoardName.THARSIS).element.checked).is.true;
-  });
-
-  it('one mode is disabled while several boards are selected', async () => {
-    const wrapper = mountPopup([BoardName.THARSIS, BoardName.HELLAS]);
-    const one = wrapper.find<HTMLInputElement>('#boardMode-one-radio');
-    expect(one.element.disabled).is.true;
-    await checkbox(wrapper, BoardName.THARSIS).setValue(false);
-    expect(one.element.disabled).is.false;
-  });
-
-  it('closes without a selection', async () => {
-    const wrapper = mountPopup();
-    await wrapper.find('.close-button').trigger('click');
-    expect(wrapper.emitted('close')).to.have.length(1);
+    await board(wrapper, BoardName.ELYSIUM).trigger('click');
+    expect(board(wrapper, BoardName.ELYSIUM).classes()).includes('create-game-chip--selected');
+    expect(board(wrapper, BoardName.THARSIS).classes()).not.includes('create-game-chip--selected');
     expect(wrapper.emitted('update:boards')).is.undefined;
   });
 
-  for (const run of [
-    {shuffleMap: false},
-    {shuffleMap: true},
-  ] as const) {
-    it(`shows whether board tiles are randomized ${JSON.stringify(run)}`, () => {
-      const wrapper = mountPopup([BoardName.THARSIS], run.shuffleMap);
-      expect(wrapper.find<HTMLInputElement>('#shuffleMap-checkbox').element.checked).eq(run.shuffleMap);
-    });
-  }
-
-  it('emits the randomize board tiles choice without closing', async () => {
+  it('random board starts with the official pool and can switch to all boards', async () => {
     const wrapper = mountPopup();
-    await wrapper.find('#shuffleMap-checkbox').setValue(true);
-    expect(wrapper.emitted('update:shuffleMap')).to.deep.eq([[true]]);
-    expect(wrapper.emitted('close')).is.undefined;
+    await switches(wrapper)[0].setValue(true);
+    const official = boardOptions(RandomBoardOption.OFFICIAL);
+    for (const boardName of official) {
+      expect(board(wrapper, boardName).classes()).includes('create-game-chip--selected');
+    }
+    const allButton = wrapper.findAll('.create-game-segmented button')[1];
+    await allButton.trigger('click');
+    expect(board(wrapper, BoardName.HOLLANDIA).classes()).includes('create-game-chip--selected');
+    expect(wrapper.emitted('update:boards')).is.undefined;
   });
 
-  it('removes a board that is already selected', async () => {
-    const wrapper = mountPopup([BoardName.THARSIS, BoardName.HELLAS]);
-    await checkbox(wrapper, BoardName.THARSIS).setValue(false);
-    expect(wrapper.emitted('update:boards')).to.deep.eq([[[BoardName.HELLAS]]]);
+  it('keeps board choices local until Apply', async () => {
+    const wrapper = mountPopup();
+    await switches(wrapper)[0].setValue(true);
+    await board(wrapper, BoardName.HOLLANDIA).trigger('click');
+    await switches(wrapper)[1].setValue(true);
+    expect(wrapper.emitted('update:boards')).is.undefined;
+    expect(wrapper.emitted('update:shuffleMap')).is.undefined;
+
+    await wrapper.find('.dialog-frame-foot .btn-primary').trigger('click');
+    const emittedBoards = wrapper.emitted('update:boards');
+    expect(emittedBoards).has.length(1);
+    expect(emittedBoards?.[0][0]).includes(BoardName.HOLLANDIA);
+    expect(wrapper.emitted('update:shuffleMap')).deep.eq([[true]]);
+    expect(wrapper.emitted('close')).has.length(1);
   });
 
-  for (const run of [
-    {button: 0, expected: [
-      BoardName.THARSIS,
-      BoardName.HELLAS,
-      BoardName.ELYSIUM,
-      BoardName.UTOPIA_PLANITIA,
-      BoardName.VASTITAS_BOREALIS_NOVA,
-      BoardName.TERRA_CIMMERIA_NOVA,
-    ]},
-    {button: 1, expected: [
-      BoardName.THARSIS,
-      BoardName.HELLAS,
-      BoardName.ELYSIUM,
-      BoardName.UTOPIA_PLANITIA,
-      BoardName.VASTITAS_BOREALIS_NOVA,
-      BoardName.TERRA_CIMMERIA_NOVA,
-      BoardName.AMAZONIS_PLANITIA,
-      BoardName.ARABIA_TERRA,
-      BoardName.AMAZONIS,
-      BoardName.TERRA_CIMMERIA,
-      BoardName.VASTITAS_BOREALIS,
-      BoardName.HOLLANDIA,
-    ]},
-  ] as const) {
-    it(`random button selects its boards ${JSON.stringify(run)}`, async () => {
-      const wrapper = mountPopup();
-      await wrapper.findAll('.create-game-board-random')[run.button].trigger('click');
-      const expected = run.expected;
-      expect(wrapper.emitted('update:boards')).to.deep.eq([[expected]]);
-      for (const board of expected) {
-        expect(checkbox(wrapper, board).element.checked).is.true;
-      }
-      expect(wrapper.emitted('close')).is.undefined;
-      expect(wrapper.find<HTMLInputElement>('#boardMode-many-radio').element.checked).is.true;
-    });
-  }
-
-  it('clear resets the selection to Tharsis', async () => {
-    const wrapper = mountPopup([BoardName.HELLAS, BoardName.ELYSIUM]);
-    await wrapper.find('.create-game-board-clear').trigger('click');
-    expect(wrapper.emitted('update:boards')).to.deep.eq([[[BoardName.THARSIS]]]);
-    expect(checkbox(wrapper, BoardName.THARSIS).element.checked).is.true;
-    expect(checkbox(wrapper, BoardName.HELLAS).element.checked).is.false;
-    expect(checkbox(wrapper, BoardName.ELYSIUM).element.checked).is.false;
-    expect(wrapper.emitted('close')).is.undefined;
-    expect(wrapper.find<HTMLInputElement>('#boardMode-one-radio').element.checked).is.true;
+  it('closes without applying changes', async () => {
+    const wrapper = mountPopup();
+    await board(wrapper, BoardName.ELYSIUM).trigger('click');
+    await switches(wrapper)[1].setValue(true);
+    await wrapper.find('.dialog-frame-close').trigger('click');
+    expect(wrapper.emitted('close')).has.length(1);
+    expect(wrapper.emitted('update:boards')).is.undefined;
+    expect(wrapper.emitted('update:shuffleMap')).is.undefined;
   });
 
-  it('closing with no boards restores the original boards', async () => {
-    const wrapper = mountPopup([BoardName.HELLAS, BoardName.ELYSIUM]);
-    await checkbox(wrapper, BoardName.HELLAS).setValue(false);
-    await checkbox(wrapper, BoardName.ELYSIUM).setValue(false);
-    await wrapper.find('.close-button').trigger('click');
-    expect(wrapper.emitted('update:boards')).to.deep.eq([
-      [[BoardName.ELYSIUM]],
-      [[]],
-      [[BoardName.HELLAS, BoardName.ELYSIUM]],
-    ]);
-    expect(wrapper.emitted('close')).to.have.length(1);
-  });
-
-  it('closing with no boards and no original boards selects Tharsis', async () => {
-    const wrapper = mountPopup([]);
-    await wrapper.find('.close-button').trigger('click');
-    expect(wrapper.emitted('update:boards')).to.deep.eq([[[BoardName.THARSIS]]]);
-    expect(wrapper.emitted('close')).to.have.length(1);
+  it('shows whether board tiles are randomized', () => {
+    const wrapper = mountPopup([BoardName.THARSIS], true);
+    expect(switches(wrapper)[1].element.checked).is.true;
   });
 });

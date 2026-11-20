@@ -1700,5 +1700,6 @@
   "Browser notifications": "브라우저 알림",
   "Notifications are off for this browser.": "이 브라우저의 알림이 꺼져 있습니다.",
   "Notifications are blocked in the browser settings for this site.": "이 사이트의 알림이 브라우저 설정에서 차단되어 있습니다.",
-  "Notifications are enabled for this browser.": "이 브라우저의 알림이 켜져 있습니다."
+  "Notifications are enabled for this browser.": "이 브라우저의 알림이 켜져 있습니다.",
+  "Select a board": "보드를 선택하세요"
 }

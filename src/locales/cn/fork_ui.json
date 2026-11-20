@@ -2432,5 +2432,6 @@
   "Browser notifications": "浏览器通知",
   "Notifications are off for this browser.": "此浏览器的通知已关闭。",
   "Notifications are blocked in the browser settings for this site.": "此网站的通知已在浏览器设置中被阻止。",
-  "Notifications are enabled for this browser.": "此浏览器的通知已启用。"
+  "Notifications are enabled for this browser.": "此浏览器的通知已启用。",
+  "Select a board": "选择地图"
 }

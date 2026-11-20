@@ -2319,5 +2319,6 @@
   "Browser notifications": "Уведомления браузера",
   "Notifications are off for this browser.": "Уведомления отключены для этого браузера.",
   "Notifications are blocked in the browser settings for this site.": "Уведомления заблокированы в настройках браузера для этого сайта.",
-  "Notifications are enabled for this browser.": "Уведомления включены для этого браузера."
+  "Notifications are enabled for this browser.": "Уведомления включены для этого браузера.",
+  "Select a board": "Выберите поле"
 }

@@ -1446,5 +1446,6 @@
   "Browser notifications": "Selaimen ilmoitukset",
   "Notifications are off for this browser.": "Ilmoitukset ovat pois päältä tässä selaimessa.",
   "Notifications are blocked in the browser settings for this site.": "Ilmoitukset on estetty selaimen asetuksissa tälle sivustolle.",
-  "Notifications are enabled for this browser.": "Ilmoitukset ovat käytössä tässä selaimessa."
+  "Notifications are enabled for this browser.": "Ilmoitukset ovat käytössä tässä selaimessa.",
+  "Select a board": "Valitse pelilauta"
 }

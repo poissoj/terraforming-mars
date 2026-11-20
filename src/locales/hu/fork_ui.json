@@ -1630,5 +1630,6 @@
   "Browser notifications": "Böngészőértesítések",
   "Notifications are off for this browser.": "Az értesítések ki vannak kapcsolva ebben a böngészőben.",
   "Notifications are blocked in the browser settings for this site.": "Az értesítések le vannak tiltva a böngésző beállításaiban ehhez az oldalhoz.",
-  "Notifications are enabled for this browser.": "Az értesítések engedélyezve vannak ebben a böngészőben."
+  "Notifications are enabled for this browser.": "Az értesítések engedélyezve vannak ebben a böngészőben.",
+  "Select a board": "Válassz ki egy táblát"
 }

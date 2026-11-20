@@ -1890,6 +1890,46 @@ each(@players, {
 
 }
 
+// From the two-column create layout on: keep the page still and let the settings column scroll.
+// The right column already scrolls its player list; the global overlay scrollbar is not needed.
+@create-game-two-columns: 1151px; // matches the first two-column width in createGameColumns.ts
+@media (min-width: @create-game-two-columns) {
+  .lobby-create-overlay {
+    overflow: hidden;
+  }
+
+  .create-game--lobby {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    padding-bottom: 0;
+  }
+
+  .create-game-head {
+    flex: none;
+  }
+
+  .create-game-layout {
+    flex: 1 1 auto;
+    grid-template-rows: minmax(0, 1fr);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .create-game-settings {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .create-game-side {
+    max-height: 100%;
+    min-height: 0;
+  }
+}
+
 // Name of the game above the players (create form, also outside the lobby)
 .create-game-name {
   display: block;

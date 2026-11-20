@@ -20,11 +20,11 @@ describe('CreateGameBoardPreview', () => {
     const config = {boards: [BoardName.THARSIS, BoardName.HELLAS], boardSeed: 0.4, expansions: {}} as unknown as NewGameConfig;
     const wrapper = shallowMount(CreateGameBoardPreview, {
       ...globalConfig,
-      props: {config, isRandom: true, showBoardName: true, boardColorClass: () => ''},
+      props: {config, isRandom: true},
     });
     await flushPromises();
     expect(JSON.parse(body).boardSeed).eq(0.4);
     expect(wrapper.emitted('drawn')).deep.eq([[BoardName.HELLAS]]);
-    expect(wrapper.text()).contains(BoardName.HELLAS);
+    expect(wrapper.findComponent({name: 'ScaledBoard'}).props('boardName')).eq(BoardName.HELLAS);
   });
 });

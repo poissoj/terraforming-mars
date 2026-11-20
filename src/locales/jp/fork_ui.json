@@ -1822,5 +1822,6 @@
   "Browser notifications": "ブラウザの通知",
   "Notifications are off for this browser.": "このブラウザの通知はオフです。",
   "Notifications are blocked in the browser settings for this site.": "このサイトの通知はブラウザの設定でブロックされています。",
-  "Notifications are enabled for this browser.": "このブラウザの通知は有効です。"
+  "Notifications are enabled for this browser.": "このブラウザの通知は有効です。",
+  "Select a board": "ボードを選択"
 }

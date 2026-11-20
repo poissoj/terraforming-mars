@@ -720,6 +720,75 @@ a.create-game-info-box-more {
   clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
 }
 
+// The board card shows one compact control; the list of boards is in BoardPopup.vue
+.create-game-board-selector {
+  margin-bottom: 4px;
+
+  > input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  > label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    max-width: 100%;
+    min-height: 32px;
+    padding: 4px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: @create-game-radius-small;
+    background: @create-game-chip-background;
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+      background: @create-game-chip-hover;
+    }
+  }
+
+  > input:focus-visible + label,
+  > input:focus-visible + .create-game-board-random-row .create-game-board-random-label {
+    outline: 2px solid @highlight-gold;
+    outline-offset: 2px;
+  }
+}
+
+// Multiple boards: the drawn board is plain text, only the random count is a button
+.create-game-board-random-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.create-game-board-drawn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.create-game-board-random-label {
+  flex: none;
+  margin-left: auto;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: @create-game-radius-small;
+  background: @create-game-chip-background;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+
+  &:hover {
+    background: @create-game-chip-hover;
+  }
+}
+
 // ---------- settings rows ----------
 .create-game-option {
   display: flex;
@@ -1690,20 +1759,22 @@ a.create-game-summary-chip:hover {
 }
 
 // ---------- board preview (CreateGameBoardPreview.vue) ----------
+// The board card must fit the viewport height: keep the selector and the planet closer than other cards.
+.create-game-card--board {
+  padding-bottom: 16px;
+
+  .create-game-card-head {
+    margin-bottom: 8px;
+  }
+}
+
 .create-game-board-preview {
   position: relative;
-  margin-top: @create-game-gap-group;
+  margin-top: 0;
+  padding-top: 8px;
 }
 
-.create-game-board-preview-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: @create-game-control-height;
-  font-weight: 500;
-}
-
-// Real button with the reload icon, bottom right at the height of the board's footer (ocean counter)
+// New draw: bottom right next to the planet
 .create-game-board-preview-reroll {
   position: absolute;
   right: 0;

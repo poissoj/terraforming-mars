@@ -8,9 +8,9 @@ export type ColumnCount = 1 | 2 | 3;
 
 // Per column count the columns, each top to bottom (as Jens laid them out)
 export const COLUMN_LAYOUTS: Record<ColumnCount, ReadonlyArray<ReadonlyArray<SettingsCard>>> = {
-  1: [['expansions', 'expansionOptions', 'board', 'setup', 'rules', 'milestones', 'cardPool']],
-  2: [['expansions', 'expansionOptions', 'milestones', 'cardPool'], ['setup', 'rules', 'board']],
-  3: [['expansions', 'expansionOptions'], ['board'], ['setup', 'rules', 'milestones', 'cardPool']],
+  1: [['expansions', 'expansionOptions', 'board', 'setup', 'milestones', 'rules', 'cardPool']],
+  2: [['expansions', 'expansionOptions', 'milestones', 'rules', 'cardPool'], ['setup', 'board']],
+  3: [['expansions', 'expansionOptions'], ['board'], ['setup', 'milestones', 'rules', 'cardPool']],
 };
 
 // Window widths from which 3 or 2 settings columns fit. Below 1800 the expansion tiles in the narrower

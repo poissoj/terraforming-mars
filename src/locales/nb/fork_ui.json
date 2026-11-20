@@ -1811,5 +1811,6 @@
   "Browser notifications": "Nettleservarsler",
   "Notifications are off for this browser.": "Varsler er slått av for denne nettleseren.",
   "Notifications are blocked in the browser settings for this site.": "Varsler er blokkert i nettleserinnstillingene for dette nettstedet.",
-  "Notifications are enabled for this browser.": "Varsler er slått på for denne nettleseren."
+  "Notifications are enabled for this browser.": "Varsler er slått på for denne nettleseren.",
+  "Select a board": "Velg et spillebrett"
 }

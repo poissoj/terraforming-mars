@@ -2396,5 +2396,6 @@
   "Browser notifications": "Известия на браузъра",
   "Notifications are off for this browser.": "Известията са изключени за този браузър.",
   "Notifications are blocked in the browser settings for this site.": "Известията са блокирани в настройките на браузъра за този сайт.",
-  "Notifications are enabled for this browser.": "Известията са разрешени за този браузър."
+  "Notifications are enabled for this browser.": "Известията са разрешени за този браузър.",
+  "Select a board": "Изберете игрално поле"
 }

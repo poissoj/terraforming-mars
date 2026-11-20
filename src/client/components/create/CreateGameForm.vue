@@ -106,33 +106,13 @@
             </section>
           </Teleport>
           <Teleport :to="columnTarget('board')">
-            <section class="create-game-card" :style="cardStyle('board')">
+            <section class="create-game-card create-game-card--board" :style="cardStyle('board')">
               <div class="create-game-card-head"><h2 v-i18n>Board</h2></div>
-              <!-- Chance first: with a random board the board chips below pick the pool it draws from -->
-              <div class="create-game-subhead" v-i18n>Random</div>
-              <OptionRow label="Random board">
-                <SwitchInput v-model="randomBoard" />
-              </OptionRow>
-              <SegmentedControl v-if="randomBoard" v-model="randomBoardScope" :options="RANDOM_BOARD_OPTIONS" />
-              <OptionRow label="Randomize board tiles" :aiCan="aiCan('option', 'shuffleMapOption')" :href="wikiUrls.randomizeBoardTiles">
-                <SwitchInput v-model="shuffleMapOption" />
-              </OptionRow>
-              <template v-for="group in boardGroups" :key="group.title">
-                <!-- Fan-made can be closed; closed, a chosen fan board stands behind the title -->
-                <CollapsibleSection variant="subhead" :title="group.title" :collapsible="group.fan" storageKey="fanBoards" :changed="group.fan ? fanBoardNote : undefined">
-                  <div class="create-game-chip-grid">
-                    <ChoiceChip v-for="boardName in group.boards" :key="boardName"
-                      :label="boardName" capitalized :selected="boards.includes(boardName)" :aiCan="aiCan('board', boardName)"
-                      @select="selectBoard(boardName)">
-                      <template #icon><span :class="getBoardColorClass(boardName)"></span></template>
-                      <span v-if="ALPHA_BOARDS.includes(boardName)" class="create-game-alpha" :title="$t('Alpha — work in progress')">α</span>
-                    </ChoiceChip>
-                  </div>
-                </CollapsibleSection>
-              </template>
+              <!-- The card shows the current board; every choice lives in the popup (BoardPopup.vue) -->
+              <BoardSelector class="create-game-board-selector" v-model:boards="boards" v-model:shuffleMap="shuffleMapOption" :label="false" :boardName="boards.length > 1 ? drawnBoard : undefined" />
               <!-- Exactly the board the game gets (same board seed); a cloned game brings its own board -->
-              <CreateGameBoardPreview v-if="!seededGame" :config="boardPreviewConfig" :isRandom="randomBoard || shuffleMapOption" :showBoardName="randomBoard"
-                :boardColorClass="getBoardColorClass" @reroll="boardSeed = Math.random()" @drawn="drawnBoard = $event" />
+              <CreateGameBoardPreview v-if="!seededGame" :config="boardPreviewConfig" :isRandom="randomBoard || shuffleMapOption"
+                @reroll="boardSeed = Math.random()" @drawn="drawnBoard = $event" />
             </section>
           </Teleport>
           <Teleport :to="columnTarget('setup')">
@@ -147,10 +127,7 @@
               <OptionRow v-if="expansions.ceo" label="Starting CEOs" iconClass="expansion-icon-ceo">
                 <NumberStepper v-model="startingCeos" :min="1" :max="6" />
               </OptionRow>
-              <div v-if="expansions.prelude || playersCount > 1" class="create-game-divider"></div>
-              <OptionRow v-if="expansions.prelude" label="Merger" :aiCan="aiCan('option', 'twoCorpsVariant')" iconClass="expansion-icon-prelude" :href="wikiUrls.merger">
-                <SwitchInput v-model="twoCorpsVariant" />
-              </OptionRow>
+              <div v-if="playersCount > 1" class="create-game-divider"></div>
               <template v-if="playersCount > 1">
                 <OptionRow label="Draft variant" :aiCan="aiCan('option', 'draftVariant')"><SwitchInput v-model="draftVariant" /></OptionRow>
                 <OptionRow label="Initial Draft variant" :aiCan="aiCan('option', 'initialDraftVariant')" :href="wikiUrls.initialDraft"><SwitchInput v-model="initialDraft" /></OptionRow>
@@ -159,50 +136,54 @@
                   <OptionRow v-if="expansions.ceo" label="CEO Draft" :aiCan="aiCan('option', 'ceosDraftVariant')" sub><SwitchInput v-model="ceosDraftVariant" /></OptionRow>
                 </template>
               </template>
+              <OptionRow label="World Government Terraforming" :aiCan="aiCan('option', 'solarPhaseOption')" :href="wikiUrls.worldGovernmentTerraforming">
+                <SwitchInput v-model="solarPhaseOption" />
+              </OptionRow>
             </section>
           </Teleport>
           <Teleport :to="columnTarget('rules')">
             <section class="create-game-card" :style="cardStyle('rules')">
-              <div class="create-game-card-head"><h2 v-i18n>House-rule variants &amp; pace</h2></div>
-              <OptionRow label="World Government Terraforming" :aiCan="aiCan('option', 'solarPhaseOption')" :href="wikiUrls.worldGovernmentTerraforming">
-                <SwitchInput v-model="solarPhaseOption" />
-              </OptionRow>
-              <OptionRow v-if="playersCount === 1" label="63 TR solo mode" :aiCan="aiCan('option', 'soloTR')" :href="wikiUrls.trSoloMode">
-                <SwitchInput v-model="soloTR" />
-              </OptionRow>
-              <OptionRow label="Allow undo" :href="wikiUrls.allowUndo"><SwitchInput v-model="undoOption" /></OptionRow>
-              <div v-if="undoOption" class="create-game-note">
-                <span v-i18n>Undo is now in best effort support.</span>
-                <span v-i18n>No effort will be spent to fix it.</span>
-                <InfoLink href="https://github.com/terraforming-mars/terraforming-mars/discussions/7647" />
-              </div>
-              <OptionRow label="Show timers"><SwitchInput v-model="showTimers" /></OptionRow>
-              <template v-if="playersCount > 1">
-                <OptionRow label="Show real-time VP" :href="wikiUrls.showRealtimeVP"><SwitchInput v-model="showOtherPlayersVP" /></OptionRow>
-                <OptionRow label="Fast mode" :href="wikiUrls.fastMode"><SwitchInput v-model="fastModeOption" /></OptionRow>
-              </template>
-              <OptionRow label="Escape Velocity" iconClass="expansion-icon-escape-velocity" :href="wikiUrls.escapeVelocity">
-                <SwitchInput v-model="escapeVelocityMode" />
-              </OptionRow>
-              <template v-if="escapeVelocityMode">
-                <div class="create-game-option create-game-option--sub">
-                  <span v-i18n>After</span>
-                  <NumberStepper v-model="escapeVelocityThreshold" :min="0" :max="180" :step="5" />
-                  <span v-i18n>min</span>
+              <CollapsibleSection title="House-rule variants & pace" storageKey="houseRules" :changed="houseRulesNote">
+                <OptionRow v-if="expansions.prelude" label="Merger" :aiCan="aiCan('option', 'twoCorpsVariant')" iconClass="expansion-icon-prelude" :href="wikiUrls.merger">
+                  <SwitchInput v-model="twoCorpsVariant" />
+                </OptionRow>
+                <OptionRow v-if="playersCount === 1" label="63 TR solo mode" :aiCan="aiCan('option', 'soloTR')" :href="wikiUrls.trSoloMode">
+                  <SwitchInput v-model="soloTR" />
+                </OptionRow>
+                <OptionRow label="Allow undo" :href="wikiUrls.allowUndo"><SwitchInput v-model="undoOption" /></OptionRow>
+                <div v-if="undoOption" class="create-game-note">
+                  <span v-i18n>Undo is now in best effort support.</span>
+                  <span v-i18n>No effort will be spent to fix it.</span>
+                  <InfoLink href="https://github.com/terraforming-mars/terraforming-mars/discussions/7647" />
                 </div>
-                <div class="create-game-option create-game-option--sub">
-                  <span v-i18n>Plus</span>
-                  <NumberStepper v-model="escapeVelocityBonusSeconds" :min="1" :max="10" />
-                  <span v-i18n>seconds per action</span>
-                </div>
-                <div class="create-game-option create-game-option--sub">
-                  <span v-i18n>Reduce</span>
-                  <NumberStepper v-model="escapeVelocityPenalty" :min="1" :max="10" />
-                  <span v-i18n>VP every</span>
-                  <NumberStepper v-model="escapeVelocityPeriod" :min="1" :max="10" />
-                  <span v-i18n>min</span>
-                </div>
-              </template>
+                <OptionRow label="Show timers"><SwitchInput v-model="showTimers" /></OptionRow>
+                <template v-if="playersCount > 1">
+                  <OptionRow label="Show real-time VP" :href="wikiUrls.showRealtimeVP"><SwitchInput v-model="showOtherPlayersVP" /></OptionRow>
+                  <OptionRow label="Fast mode" :href="wikiUrls.fastMode"><SwitchInput v-model="fastModeOption" /></OptionRow>
+                </template>
+                <OptionRow label="Escape Velocity" iconClass="expansion-icon-escape-velocity" :href="wikiUrls.escapeVelocity">
+                  <SwitchInput v-model="escapeVelocityMode" />
+                </OptionRow>
+                <template v-if="escapeVelocityMode">
+                  <div class="create-game-option create-game-option--sub">
+                    <span v-i18n>After</span>
+                    <NumberStepper v-model="escapeVelocityThreshold" :min="0" :max="180" :step="5" />
+                    <span v-i18n>min</span>
+                  </div>
+                  <div class="create-game-option create-game-option--sub">
+                    <span v-i18n>Plus</span>
+                    <NumberStepper v-model="escapeVelocityBonusSeconds" :min="1" :max="10" />
+                    <span v-i18n>seconds per action</span>
+                  </div>
+                  <div class="create-game-option create-game-option--sub">
+                    <span v-i18n>Reduce</span>
+                    <NumberStepper v-model="escapeVelocityPenalty" :min="1" :max="10" />
+                    <span v-i18n>VP every</span>
+                    <NumberStepper v-model="escapeVelocityPeriod" :min="1" :max="10" />
+                    <span v-i18n>min</span>
+                  </div>
+                </template>
+              </CollapsibleSection>
             </section>
           </Teleport>
           <!-- Own card: has nothing to do with the board (only with several players, solo has none).
@@ -424,14 +405,13 @@
 import {defineComponent, nextTick} from 'vue';
 import {Color, PLAYER_COLORS} from '@/common/Color';
 import {BoardName} from '@/common/boards/BoardName';
-import {RandomBoardOption} from '@/common/boards/RandomBoardOption';
 import {CardName} from '@/common/cards/CardName';
 import CustomCardListCard from '@/client/components/create/CustomCardListCard.vue';
 import CreateGameBoardPreview from '@/client/components/create/CreateGameBoardPreview.vue';
 import {observeStickyBottom} from '@/client/components/create/stickyBottomObserver';
 import {observeBelowViewport} from '@/client/components/create/belowViewportObserver';
 import CollapsibleSection from '@/client/components/create/CollapsibleSection.vue';
-import {cardPoolChanged, expansionOptionsChanged, milestonesChanged} from '@/client/components/create/changedFromDefault';
+import {cardPoolChanged, expansionOptionsChanged, houseRulesChanged, milestonesChanged} from '@/client/components/create/changedFromDefault';
 import {ColumnCount, currentColumnCount, placementOf, SettingsCard, watchColumnCount} from '@/client/components/create/createGameColumns';
 import {translateText, translateTextWithParams} from '@/client/directives/i18n';
 import {describeFailure, failureFromResponse, failureOf, RequestFailedError} from '@/client/utils/requestFailure';
@@ -451,14 +431,12 @@ import SeatIcon from './SeatIcon.vue';
 import GameSetupChips from '@/client/components/common/GameSetupChips.vue';
 import {boardChip, expansionChips, GameSetupChip, optionChips, seatChips} from '@/client/components/common/gameSetupChips';
 import {setupOptionsFromConfig} from '@/common/game/GameSetupOptions';
-import {boardColorClass} from './boardColorClass';
 import {RandomMAOptionType} from '@/common/ma/RandomMAOptionType';
 import {GameId, JSONObject} from '@/common/Types';
 import PageTitle from '@/client/components/common/PageTitle.vue';
 import {getCard} from '@/client/cards/ClientCardManifest';
 import {NewGameConfig, NewPlayerModel} from '@/common/game/NewGameConfig';
-import {boardOptions} from '@/common/boards/randomBoardOptions';
-import {randomOptionOf, singleBoardValue} from '@/common/boards/boardPool';
+import {singleBoardValue} from '@/common/boards/boardPool';
 import {vueRoot} from '@/client/components/vueRoot';
 import {showAlert} from '@/client/components/showAlert';
 import {CreateGameModel} from './CreateGameModel';
@@ -483,9 +461,10 @@ import ExpansionGroupMenu from './ExpansionGroupMenu.vue';
 import InfoLink from './InfoLink.vue';
 import NumberStepper from './NumberStepper.vue';
 import OptionRow from './OptionRow.vue';
+import BoardSelector from './BoardSelector.vue';
 import SegmentedControl from './SegmentedControl.vue';
 import SwitchInput from './SwitchInput.vue';
-import {AGENDA_OPTIONS, AI_LEVEL_OPTIONS, ExpansionChoice, FAN_EXPANSIONS, MILESTONE_OPTIONS, MANUAL_MILESTONE_OPTION, OFFICIAL_BOARDS, ALPHA_BOARDS, PLAYER_COUNT_OPTIONS, RANDOM_BOARD_OPTIONS, SegmentOption, FAN_BOARDS} from './createGameChoices';
+import {AGENDA_OPTIONS, AI_LEVEL_OPTIONS, ExpansionChoice, FAN_EXPANSIONS, MILESTONE_OPTIONS, MANUAL_MILESTONE_OPTION, PLAYER_COUNT_OPTIONS, SegmentOption} from './createGameChoices';
 import {ExpansionGroup, ExpansionGrouping, ExpansionTile, groupExpansions, loadExpansionGrouping, saveExpansionGrouping} from './expansionGrouping';
 import {ContentLinePart, contentLine} from './expansionContentLine';
 import {ContentKey, TraitKey} from '@/common/game/expansionFacts';
@@ -512,8 +491,6 @@ type FormModel = {
   /** Only start writing the URL after loading, otherwise the default state overwrites the shared link */
   settingsLinkReady: boolean;
   settingsLinkCopied: boolean;
-  /** Board chosen before switching on "Random board" – comes back when it is switched off */
-  lastFixedBoard: BoardName;
   /** Seed of the board (random board, shuffled bonuses): preview and created game use the same one; not a setting */
   boardSeed: number;
   /** Board the preview drew (random board) */
@@ -570,7 +547,6 @@ export default defineComponent({
       uploading: false,
       settingsLinkReady: false,
       settingsLinkCopied: false,
-      lastFixedBoard: BoardName.THARSIS,
       boardSeed: Math.random(),
       drawnBoard: undefined,
       createCardStuck: false,
@@ -609,6 +585,7 @@ export default defineComponent({
     LobbyEmojiPicker,
     GameSetupChips,
     AppButton,
+    BoardSelector,
     CollapsibleSection,
     SeatIcon,
     PlayerCube,
@@ -650,11 +627,6 @@ export default defineComponent({
     },
     expansionGrouping(value: ExpansionGrouping) {
       saveExpansionGrouping(value);
-    },
-    boards(value: Array<BoardName>) {
-      if (value.length === 1) {
-        this.lastFixedBoard = value[0];
-      }
     },
     'expansions.venus': function(value: boolean) {
       this.solarPhaseOption = value;
@@ -902,9 +874,6 @@ export default defineComponent({
     hasBlockingValidationErrors(): boolean {
       return hasBlockingProblem(this.validationErrors);
     },
-    RandomBoardOption(): typeof RandomBoardOption {
-      return RandomBoardOption;
-    },
     PLAYER_COLORS(): typeof PLAYER_COLORS {
       return PLAYER_COLORS;
     },
@@ -994,35 +963,9 @@ export default defineComponent({
     AGENDA_OPTIONS(): typeof AGENDA_OPTIONS {
       return AGENDA_OPTIONS;
     },
-    ALPHA_BOARDS(): typeof ALPHA_BOARDS {
-      return ALPHA_BOARDS;
-    },
-    RANDOM_BOARD_OPTIONS(): typeof RANDOM_BOARD_OPTIONS {
-      return RANDOM_BOARD_OPTIONS;
-    },
-    // "Random board": a pool of several boards (upstream c1f05256e); one board is a fixed board
-    randomBoard: {
-      get(): boolean {
-        return this.boards.length > 1;
-      },
-      set(value: boolean) {
-        this.boards = value ? boardOptions(RandomBoardOption.OFFICIAL) : [this.lastFixedBoard];
-      },
-    },
-    // Official/All fill the pool in one go; a pool picked chip by chip highlights neither
-    randomBoardScope: {
-      get(): string {
-        return randomOptionOf(this.boards) ?? '';
-      },
-      set(value: string) {
-        this.boards = boardOptions(value as RandomBoardOption);
-      },
-    },
-    boardGroups() {
-      return [
-        {title: 'Official', boards: OFFICIAL_BOARDS, fan: false},
-        {title: 'Fan-made', boards: FAN_BOARDS, fan: true},
-      ];
+    // "Random board": a pool of several boards; one board is a fixed board
+    randomBoard(): boolean {
+      return this.boards.length > 1;
     },
     // Notes behind the title of a closed collapsible area: something in it differs from the default (changedFromDefault.ts)
     expansionOptionsNote(): string | undefined {
@@ -1034,18 +977,13 @@ export default defineComponent({
     cardPoolNote(): string | undefined {
       return cardPoolChanged(this) ? translateText('Changed') : undefined;
     },
+    houseRulesNote(): string | undefined {
+      return houseRulesChanged(this) ? translateText('Changed') : undefined;
+    },
     // Fan-made areas: what is chosen there, by name
     activeFanExpansionsNote(): string | undefined {
       const active = FAN_EXPANSIONS.filter((choice) => this.expansions[choice.expansion]).map((choice) => translateText(choice.label));
       return active.length > 0 ? active.join(', ') : undefined;
-    },
-    fanBoardNote(): string | undefined {
-      const fanBoards = this.boards.filter((boardName) => FAN_BOARDS.includes(boardName));
-      if (fanBoards.length === 0) {
-        return undefined;
-      }
-      // Board names are lower case; the chips capitalize them via CSS, the note the same way here
-      return fanBoards.map((boardName) => translateText(boardName).split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')).join(', ');
     },
     // The "Expansion options" card only has content if one of these expansions is active
     hasExpansionOptions(): boolean {
@@ -1347,17 +1285,6 @@ export default defineComponent({
     isColorTaken(color: Color, index: number): boolean {
       return this.getPlayers().some((player, otherIndex) => otherIndex !== index && player.color === color);
     },
-    // Fixed board: the chip becomes the board. Random board: the chip joins or leaves the pool;
-    // the last but one leaving makes the remaining board the fixed one
-    selectBoard(boardName: BoardName) {
-      if (!this.randomBoard) {
-        this.boards = [boardName];
-      } else if (this.boards.includes(boardName)) {
-        this.boards = this.boards.filter((other) => other !== boardName);
-      } else {
-        this.boards = [...this.boards, boardName];
-      }
-    },
     // Column elements by number (1-based); kept outside the reactive data, Vue only needs them as Teleport targets
     setColumnElement(column: number, element: unknown) {
       if (element instanceof HTMLElement) {
@@ -1401,9 +1328,6 @@ export default defineComponent({
         this.moonStandardProjectVariant = false;
         this.moonStandardProjectVariant1 = false;
       }
-    },
-    getBoardColorClass(boardName: BoardName): string {
-      return boardColorClass(boardName);
     },
     aiMarker(level: AiLevel): string {
       return aiPlayerMarker(level);
