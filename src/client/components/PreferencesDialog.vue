@@ -29,6 +29,7 @@
           </button>
           <span class="preferences-switch-track" aria-hidden="true"></span>
         </label>
+        <LobbyPushSettings v-if="group.notifications" />
       </component>
     </div>
 
@@ -50,6 +51,7 @@ import {PREFERENCE_GROUPS, PreferenceGroup, SoundPreview} from '@/client/compone
 import {SoundManager} from '@/client/utils/SoundManager';
 import {PUSH_KIND_PREFERENCE, subscribeLobbyPush} from '@/client/components/lobby/lobbyPush';
 import {Preferences} from '@/client/utils/PreferencesManager';
+import LobbyPushSettings from '@/client/components/lobby/LobbyPushSettings.vue';
 
 function pushSwitches(values: Readonly<Preferences>): Array<boolean> {
   return Object.values(PUSH_KIND_PREFERENCE).map((preference) => values[preference] === true);
@@ -71,6 +73,7 @@ export default defineComponent({
   components: {
     BugReportDialog,
     DialogFrame,
+    LobbyPushSettings,
   },
   emits: ['okButtonClicked'],
   data() {

@@ -1626,5 +1626,9 @@
   "max. ${0}": "legfeljebb ${0}",
   "protected": "védett",
   "Reduced effects on phones": "Csökkentett effektek telefonon",
-  "Smoother on older phones: no frosted glass, large shadows or animations.": "Gördülékenyebb régebbi telefonokon: nincs matt üveg, nagy árnyék és animáció."
+  "Smoother on older phones: no frosted glass, large shadows or animations.": "Gördülékenyebb régebbi telefonokon: nincs matt üveg, nagy árnyék és animáció.",
+  "Browser notifications": "Böngészőértesítések",
+  "Notifications are off for this browser.": "Az értesítések ki vannak kapcsolva ebben a böngészőben.",
+  "Notifications are blocked in the browser settings for this site.": "Az értesítések le vannak tiltva a böngésző beállításaiban ehhez az oldalhoz.",
+  "Notifications are enabled for this browser.": "Az értesítések engedélyezve vannak ebben a böngészőben."
 }

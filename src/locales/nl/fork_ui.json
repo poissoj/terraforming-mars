@@ -2065,5 +2065,9 @@
   "max. ${0}": "maximaal ${0}",
   "protected": "beschermd",
   "Reduced effects on phones": "Minder effecten op de telefoon",
-  "Smoother on older phones: no frosted glass, large shadows or animations.": "Soepeler op oudere telefoons: geen matglas, grote schaduwen of animaties."
+  "Smoother on older phones: no frosted glass, large shadows or animations.": "Soepeler op oudere telefoons: geen matglas, grote schaduwen of animaties.",
+  "Browser notifications": "Browsermeldingen",
+  "Notifications are off for this browser.": "Meldingen staan uit voor deze browser.",
+  "Notifications are blocked in the browser settings for this site.": "Meldingen zijn geblokkeerd in de browserinstellingen voor deze site.",
+  "Notifications are enabled for this browser.": "Meldingen staan aan voor deze browser."
 }

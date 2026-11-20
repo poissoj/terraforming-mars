@@ -1807,5 +1807,9 @@
   "max. ${0}": "maks. ${0}",
   "protected": "beskyttet",
   "Reduced effects on phones": "Reduserte effekter på mobil",
-  "Smoother on older phones: no frosted glass, large shadows or animations.": "Jevnere på eldre mobiler: uten frostet glass, store skygger og animasjoner."
+  "Smoother on older phones: no frosted glass, large shadows or animations.": "Jevnere på eldre mobiler: uten frostet glass, store skygger og animasjoner.",
+  "Browser notifications": "Nettleservarsler",
+  "Notifications are off for this browser.": "Varsler er slått av for denne nettleseren.",
+  "Notifications are blocked in the browser settings for this site.": "Varsler er blokkert i nettleserinnstillingene for dette nettstedet.",
+  "Notifications are enabled for this browser.": "Varsler er slått på for denne nettleseren."
 }

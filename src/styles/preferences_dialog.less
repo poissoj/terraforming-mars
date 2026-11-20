@@ -66,6 +66,21 @@
   }
 }
 
+// Permanent notification access below the lobby-message switches (LobbyPushSettings.vue):
+// the lobby banner can be closed for good, this row stays.
+.preferences-push-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 4px 0;
+  padding: 8px;
+  border-top: 1px solid @dialog-surface-border;
+}
+
+.preferences-push-status .btn {
+  flex: none;
+}
+
 .preferences-switch-text {
   display: flex;
   flex: 1;

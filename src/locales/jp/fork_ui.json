@@ -1818,5 +1818,9 @@
   "max. ${0}": "最大 ${0}",
   "protected": "保護",
   "Reduced effects on phones": "スマホで効果を減らす",
-  "Smoother on older phones: no frosted glass, large shadows or animations.": "古いスマホでもなめらかに：すりガラス、大きな影、アニメーションなし。"
+  "Smoother on older phones: no frosted glass, large shadows or animations.": "古いスマホでもなめらかに：すりガラス、大きな影、アニメーションなし。",
+  "Browser notifications": "ブラウザの通知",
+  "Notifications are off for this browser.": "このブラウザの通知はオフです。",
+  "Notifications are blocked in the browser settings for this site.": "このサイトの通知はブラウザの設定でブロックされています。",
+  "Notifications are enabled for this browser.": "このブラウザの通知は有効です。"
 }

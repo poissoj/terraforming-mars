@@ -2428,5 +2428,9 @@
   "max. ${0}": "最多 ${0}",
   "protected": "受保护",
   "Reduced effects on phones": "手机上减少特效",
-  "Smoother on older phones: no frosted glass, large shadows or animations.": "在旧手机上更流畅：没有毛玻璃、大阴影和动画。"
+  "Smoother on older phones: no frosted glass, large shadows or animations.": "在旧手机上更流畅：没有毛玻璃、大阴影和动画。",
+  "Browser notifications": "浏览器通知",
+  "Notifications are off for this browser.": "此浏览器的通知已关闭。",
+  "Notifications are blocked in the browser settings for this site.": "此网站的通知已在浏览器设置中被阻止。",
+  "Notifications are enabled for this browser.": "此浏览器的通知已启用。"
 }

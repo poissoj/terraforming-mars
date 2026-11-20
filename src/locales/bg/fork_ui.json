@@ -2392,5 +2392,9 @@
   "max. ${0}": "макс. ${0}",
   "protected": "защитено",
   "Reduced effects on phones": "Намалени ефекти на телефона",
-  "Smoother on older phones: no frosted glass, large shadows or animations.": "По-плавно на по-стари телефони: без матово стъкло, големи сенки и анимации."
+  "Smoother on older phones: no frosted glass, large shadows or animations.": "По-плавно на по-стари телефони: без матово стъкло, големи сенки и анимации.",
+  "Browser notifications": "Известия на браузъра",
+  "Notifications are off for this browser.": "Известията са изключени за този браузър.",
+  "Notifications are blocked in the browser settings for this site.": "Известията са блокирани в настройките на браузъра за този сайт.",
+  "Notifications are enabled for this browser.": "Известията са разрешени за този браузър."
 }

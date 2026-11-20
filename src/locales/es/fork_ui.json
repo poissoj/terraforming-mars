@@ -2719,5 +2719,9 @@
   "max. ${0}": "máx. ${0}",
   "protected": "protegido",
   "Reduced effects on phones": "Efectos reducidos en el móvil",
-  "Smoother on older phones: no frosted glass, large shadows or animations.": "Más fluido en móviles antiguos: sin vidrio esmerilado, sombras grandes ni animaciones."
+  "Smoother on older phones: no frosted glass, large shadows or animations.": "Más fluido en móviles antiguos: sin vidrio esmerilado, sombras grandes ni animaciones.",
+  "Browser notifications": "Notificaciones del navegador",
+  "Notifications are off for this browser.": "Las notificaciones están desactivadas para este navegador.",
+  "Notifications are blocked in the browser settings for this site.": "Las notificaciones están bloqueadas en la configuración del navegador para este sitio.",
+  "Notifications are enabled for this browser.": "Las notificaciones están activadas para este navegador."
 }

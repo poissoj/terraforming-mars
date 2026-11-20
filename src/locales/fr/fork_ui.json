@@ -1493,5 +1493,9 @@
   "max. ${0}": "au plus ${0}",
   "protected": "protégé",
   "Reduced effects on phones": "Effets réduits sur téléphone",
-  "Smoother on older phones: no frosted glass, large shadows or animations.": "Plus fluide sur les anciens téléphones : sans verre dépoli, grandes ombres ni animations."
+  "Smoother on older phones: no frosted glass, large shadows or animations.": "Plus fluide sur les anciens téléphones : sans verre dépoli, grandes ombres ni animations.",
+  "Browser notifications": "Notifications du navigateur",
+  "Notifications are off for this browser.": "Les notifications sont désactivées pour ce navigateur.",
+  "Notifications are blocked in the browser settings for this site.": "Les notifications sont bloquées dans les réglages du navigateur pour ce site.",
+  "Notifications are enabled for this browser.": "Les notifications sont activées pour ce navigateur."
 }

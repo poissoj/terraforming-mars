@@ -1442,5 +1442,9 @@
   "max. ${0}": "enint. ${0}",
   "protected": "suojattu",
   "Reduced effects on phones": "Kevennetyt tehosteet puhelimessa",
-  "Smoother on older phones: no frosted glass, large shadows or animations.": "Sujuvampi vanhemmissa puhelimissa: ei huurrelasia, suuria varjoja eikä animaatioita."
+  "Smoother on older phones: no frosted glass, large shadows or animations.": "Sujuvampi vanhemmissa puhelimissa: ei huurrelasia, suuria varjoja eikä animaatioita.",
+  "Browser notifications": "Selaimen ilmoitukset",
+  "Notifications are off for this browser.": "Ilmoitukset ovat pois päältä tässä selaimessa.",
+  "Notifications are blocked in the browser settings for this site.": "Ilmoitukset on estetty selaimen asetuksissa tälle sivustolle.",
+  "Notifications are enabled for this browser.": "Ilmoitukset ovat käytössä tässä selaimessa."
 }
