@@ -1,4 +1,5 @@
 import {expect} from 'chai';
+import {runInSandbox} from '@/server/ai/simulationSandbox';
 import {resetAggregatedWarnings, warnAggregated} from '@/server/utils/aggregatedWarn';
 
 describe('warnAggregated', () => {
@@ -29,6 +30,40 @@ describe('warnAggregated', () => {
       warnAggregated('second', 'second problem', 10);
       await new Promise((resolve) => setTimeout(resolve, 25));
       expect(messages).deep.eq(['first problem', 'second problem']);
+    } finally {
+      console.warn = originalWarn;
+      resetAggregatedWarnings();
+    }
+  });
+
+  it('does not log warnings created inside a simulation', async () => {
+    const messages: Array<string> = [];
+    const originalWarn = console.warn;
+    console.warn = (message: string) => messages.push(message);
+    try {
+      runInSandbox(() => {
+        warnAggregated('simulated', 'illegal state in a game copy', 10);
+        warnAggregated('simulated', 'illegal state in a game copy', 10);
+      });
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      expect(messages).deep.eq([]);
+    } finally {
+      console.warn = originalWarn;
+      resetAggregatedWarnings();
+    }
+  });
+
+  it('logs warnings again after a simulation', async () => {
+    const messages: Array<string> = [];
+    const originalWarn = console.warn;
+    console.warn = (message: string) => messages.push(message);
+    try {
+      runInSandbox(() => warnAggregated('simulated', 'ignored', 10));
+      warnAggregated('real', 'real problem', 10);
+      warnAggregated('real', 'real problem', 10);
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      expect(messages[0]).eq('real problem');
+      expect(messages[1]).contains('real problem [repeated 2 times in');
     } finally {
       console.warn = originalWarn;
       resetAggregatedWarnings();
