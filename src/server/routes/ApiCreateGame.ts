@@ -30,6 +30,7 @@ import {validateCustomMAExpansions} from '../ma/MilestoneAwardSelector';
 import {AiEngineDecision, aiBlockerText, aiOptionsInEffect} from '../../common/ai/aiCompatibility';
 import {decideAiEngine as decideServerAiEngine} from '../ai/aiEngineChoice';
 import {rustOptionsText} from '../ai/rust/rustSetup';
+import {logGameLifecycle} from '../logs/gameLifecycleLog';
 
 import {isObject} from '@/common/utils/utils';
 
@@ -296,6 +297,21 @@ export class ApiCreateGame extends Handler {
     ctx.gameLoader.add(game);
     // Only games that are actually created count against the quota.
     this.quotaHandlers.forEach((handler) => handler.record(ctx));
+    const aiCount = players.filter((player) => player.aiLevel !== undefined).length;
+    const expansions = Object.entries(gameOptions.expansions)
+      .filter(([, enabled]) => enabled)
+      .map(([name]) => name)
+      .join(',');
+    logGameLifecycle('created', {
+      id: game.id,
+      mode: gameOptions.clonedGamedId === undefined ? 'new' : 'clone',
+      clone: gameOptions.clonedGamedId,
+      players: game.players.length,
+      humans: game.players.length - aiCount,
+      ai: aiCount,
+      board: gameOptions.boardName,
+      expansions,
+    });
     return game;
   }
 }

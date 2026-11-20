@@ -12,6 +12,7 @@ import {lobbyRoomPath} from '../../common/lobby/lobbyUrl';
 import {LobbyPushKind} from '../../common/lobby/LobbyPushModel';
 import {fileStorage, LobbyStorage} from './lobbyStorage';
 import {notifyLobbyEvent} from '../events/lobbyEvents';
+import {logGameLifecycle} from '../logs/gameLifecycleLog';
 
 /** A participant whose SSE heartbeat and fallback polling both stop (closed tab, lost connection) loses the seat after this time */
 export const PARTICIPANT_TIMEOUT_MS = 45_000;
@@ -642,6 +643,13 @@ export class Lobby {
       room.state = 'started';
       room.startedAt = this.clock();
       this.save();
+      logGameLifecycle('lobby-started', {
+        room: room.id,
+        id: game.id,
+        players: game.players.length,
+        humans: room.seats.filter((seat) => seat.kind === 'human' || seat.kind === 'guest').length,
+        ai: room.seats.filter((seat) => seat.kind === 'ai').length,
+      });
       const actorName = room.seats.find((seat): seat is HumanSeat => seat.kind === 'human' && seat.participant === actor)?.profile.name ?? '';
       for (const seat of room.seats) {
         if (seat.kind === 'human' && seat.participant !== actor) {
