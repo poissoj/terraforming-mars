@@ -7,11 +7,27 @@ type PendingWarning = {
 
 const pending = new Map<string, PendingWarning>();
 
+// AI simulations try out moves that may break rules on purpose. Their warnings must not reach
+// the server log, including the delayed summaries created by the aggregation below.
+let suppressionDepth = 0;
+
+/** While suppressed, warnings are neither logged nor kept for a delayed summary. */
+export function suppressAggregatedWarnings(): void {
+  suppressionDepth++;
+}
+
+export function restoreAggregatedWarnings(): void {
+  suppressionDepth = Math.max(0, suppressionDepth - 1);
+}
+
 /**
  * Logs the first occurrence immediately, then one summary after the window. Used for repeated runtime
  * faults (AI retries, illegal states) that would otherwise flood the server log.
  */
 export function warnAggregated(key: string, message: string, windowMs: number = 30_000): void {
+  if (suppressionDepth > 0) {
+    return;
+  }
   const existing = pending.get(key);
   if (existing !== undefined) {
     existing.count++;
@@ -46,4 +62,5 @@ export function resetAggregatedWarnings(): void {
     clearTimeout(entry.timer);
   }
   pending.clear();
+  suppressionDepth = 0;
 }

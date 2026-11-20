@@ -1,5 +1,6 @@
 import {Database} from '../database/Database';
 import {GameLoader} from '../database/GameLoader';
+import {restoreAggregatedWarnings, suppressAggregatedWarnings} from '../utils/aggregatedWarn';
 
 // While the AI tries out moves on copies of a game, nothing may reach the real database or the
 // game cache: the copies share the real game's id and would overwrite it. The AI also must not
@@ -28,11 +29,13 @@ export function runInSandbox<T>(work: () => T): T {
   Database.getInstance = () => database;
   GameLoader.getInstance = () => gameLoader;
   console.warn = () => {};
+  suppressAggregatedWarnings();
   simulationDepth++;
   try {
     return work();
   } finally {
     simulationDepth--;
+    restoreAggregatedWarnings();
     Database.getInstance = originalDatabase;
     GameLoader.getInstance = originalGameLoader;
     console.warn = originalWarn;
