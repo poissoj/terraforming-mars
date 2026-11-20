@@ -76,6 +76,7 @@ describe('PreferencesDialog', () => {
     expect(shown).deep.eq(expected);
     expect(new Set(shown).size).eq(shown.length);
     expect(wrapper.findAll('.preferences-group')).has.length(PREFERENCE_GROUPS.length);
+    expect(wrapper.find('.preferences-push-status').exists()).is.true;
     expect(wrapper.find('.dialog-frame-title').text()).eq('Settings');
   });
 });

@@ -20,6 +20,8 @@ export type PreferenceGroup = {
   iconPaths: ReadonlyArray<string>;
   // Rarely needed: collapsed and visually toned down
   optional?: boolean;
+  // Shows the browser notification permission and its action (LobbyPushSettings.vue)
+  notifications?: boolean;
   switches: ReadonlyArray<PreferenceSwitch>;
 };
 
@@ -45,6 +47,7 @@ export const PREFERENCE_GROUPS: ReadonlyArray<PreferenceGroup> = [
     // Push messages of the lobby (lobbyPush.ts): one switch per kind, also with the page in the background or closed
     title: 'Messages from the lobby',
     iconPaths: ['M6 16V11a6 6 0 1 1 12 0v5l2 2H4z', 'M10 21h4', 'M19 3l2 2-2 2'],
+    notifications: true,
     switches: [
       {preference: 'push_joined', label: 'Somebody joins your game', hint: 'Also with the lobby in the background or closed.'},
       {preference: 'push_request', label: 'Somebody asks to join'},
