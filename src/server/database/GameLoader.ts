@@ -17,6 +17,7 @@ import {isUsableDaysSetting} from './utils';
 import {notifyGameGone} from './gameGone';
 import {notifyLobbyEvent} from '../events/lobbyEvents';
 import {notifyGameChanged} from '../events/gameEvents';
+import {formatLogDuration, logGameLifecycle} from '../logs/gameLifecycleLog';
 
 const metrics = {
   initialize: new prometheus.Gauge({
@@ -252,6 +253,7 @@ export class GameLoader implements IGameLoader {
     const game = Game.deserialize(serializedGame);
     await this.add(game);
     game.undoCount++;
+    logGameLifecycle('restored', {id: gameId, saveId, undoCount: game.undoCount});
     return game;
   }
 
@@ -271,9 +273,15 @@ export class GameLoader implements IGameLoader {
       await database.markFinished(game.id);
       notifyGameGone(game.id);
       metrics.gamesFinished.inc({players: String(game.players.length)});
+      logGameLifecycle('finished', {
+        id: game.id,
+        players: game.players.length,
+        generation: game.generation,
+        duration: formatLogDuration(Date.now() - game.createdTime.getTime()),
+      });
       await this.maintenance();
     } catch (err) {
-      console.error(err);
+      console.error(`[game] finishing failed id=${game.id}`, err);
     }
   }
 
@@ -295,6 +303,7 @@ export class GameLoader implements IGameLoader {
     this.purgedGames.push(gameId);
     await Database.getInstance().deleteGame(gameId);
     recordDeletedGames([entry]);
+    logGameLifecycle('deleted', {id: gameId, reason, players: entry.playerNames.length});
   }
 
   /**
@@ -330,6 +339,9 @@ export class GameLoader implements IGameLoader {
       entries.push(await this.forgetGame(gameId, 'purged-unfinished'));
     }
     recordDeletedGames(entries);
+    for (const entry of entries) {
+      logGameLifecycle('deleted', {id: entry.gameId, reason: entry.reason, players: entry.playerNames.length});
+    }
     metrics.gamesPurged.inc(purgedGames.length);
     if (isUsableDaysSetting('COMPRESS_COMPLETED_GAMES_DAYS')) {
       await database.compressCompletedGames();

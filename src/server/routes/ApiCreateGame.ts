@@ -28,6 +28,7 @@ import {GAME_NAME_MAX_LENGTH} from '../../common/game/GameName';
 import {validateCustomMA} from '../../common/ma/CustomMA';
 import {RandomMAOptionType} from '../../common/ma/RandomMAOptionType';
 import {validateCustomMAExpansions} from '../ma/MilestoneAwardSelector';
+import {logGameLifecycle} from '../logs/gameLifecycleLog';
 
 function parseQuotaConfig(struct: any): QuotaConfig {
   let {limit} = struct;
@@ -268,6 +269,21 @@ export class ApiCreateGame extends Handler {
     ctx.gameLoader.add(game);
     // Only games that are actually created count against the quota.
     this.quotaHandlers.forEach((handler) => handler.record(ctx));
+    const aiCount = players.filter((player) => player.aiLevel !== undefined).length;
+    const expansions = Object.entries(gameOptions.expansions)
+      .filter(([, enabled]) => enabled)
+      .map(([name]) => name)
+      .join(',');
+    logGameLifecycle('created', {
+      id: game.id,
+      mode: gameOptions.clonedGamedId === undefined ? 'new' : 'clone',
+      clone: gameOptions.clonedGamedId,
+      players: game.players.length,
+      humans: game.players.length - aiCount,
+      ai: aiCount,
+      board: gameOptions.boardName,
+      expansions,
+    });
     return game;
   }
 }
