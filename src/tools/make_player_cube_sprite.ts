@@ -1,11 +1,11 @@
 // Renders the player cubes of player_cube.less once in every color and turn into one WebP sheet with alpha
 // (assets/player-cube/sprite.webp), which PlayerCube.vue shows for small cubes instead of CSS 3D.
-// Run again after any change to the cube's look:
-//   npm run make:css && npm i --no-save playwright-core && npx tsx src/tools/make_player_cube_sprite.ts
+// Run again after any change to the cube's look, after a client build:
+//   npm run build:client && npm i --no-save playwright-core && npx tsx src/tools/make_player_cube_sprite.ts
 // Needs an installed Google Chrome (or CHROME_PATH pointing to a Chromium) and cwebp (libwebp, e.g. brew install webp):
 // the browser's own WebP encoder stores the alpha channel losslessly, which makes the sheet three times larger.
 import {execFileSync} from 'child_process';
-import {mkdirSync, mkdtempSync, readFileSync, writeFileSync} from 'fs';
+import {mkdirSync, mkdtempSync, readFileSync, readdirSync, statSync, writeFileSync} from 'fs';
 import {tmpdir} from 'os';
 import {dirname, join} from 'path';
 import {
@@ -48,6 +48,18 @@ function sheetHtml(css: string): string {
   </style></head><body><div class="sheet">${cells}</div></body></html>`;
 }
 
+// Vite names the single app stylesheet after its content hash. Pick the newest one if old builds are still there.
+function clientCss(): string {
+  const buildDir = join(ROOT, 'build');
+  const files = readdirSync(buildDir)
+    .filter((file) => /^client-.*\.css$/.test(file))
+    .sort((a, b) => statSync(join(buildDir, b)).mtimeMs - statSync(join(buildDir, a)).mtimeMs);
+  if (files.length === 0) {
+    throw new Error('build/client-*.css missing: run npm run build:client first');
+  }
+  return readFileSync(join(buildDir, files[0]), 'utf8');
+}
+
 async function main(): Promise<void> {
   // Optional tool, not a dependency of the game: only needed to regenerate the sheet (name in a variable,
   // so the type check doesn't require the package)
@@ -55,7 +67,7 @@ async function main(): Promise<void> {
   const {chromium} = await import(moduleName).catch(() => {
     throw new Error('playwright-core missing: npm i --no-save playwright-core');
   });
-  const css = readFileSync(join(ROOT, 'build/styles.css'), 'utf8');
+  const css = clientCss();
   const width = SPRITE_COLUMNS * CELL;
   const height = SPRITE_ROWS.length * CELL;
   const browser = await chromium.launch(process.env.CHROME_PATH ? {executablePath: process.env.CHROME_PATH} : {channel: 'chrome'});

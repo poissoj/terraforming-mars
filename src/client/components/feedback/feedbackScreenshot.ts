@@ -99,7 +99,7 @@ function prepareClone(clone: Node): void {
 /** The visible part of the page as it is right now */
 export async function captureVisiblePage(): Promise<HTMLCanvasElement> {
   const scale = Math.min(window.devicePixelRatio || 1, 2);
-  const {createContext, destroyContext, domToForeignObjectSvg, loadMedia} = await import(/* webpackChunkName: "feedback-screenshot" */ 'modern-screenshot');
+  const {createContext, destroyContext, domToForeignObjectSvg, loadMedia} = await import('modern-screenshot');
   const marked = markForSnapshot();
   // The body may be only as tall as the window (create game page) while the document scrolls further: then the copy
   // ended at the window height and a page scrolled down came out black. So the copy gets the full document height.

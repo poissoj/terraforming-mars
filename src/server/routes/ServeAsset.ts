@@ -81,7 +81,7 @@ export class ServeAsset extends Handler {
 
     // asset caching. The app page carries the request origin in its Open Graph tags, so it must
     // not be shared between requests with different hosts.
-    const cacheable = file !== 'assets/index.html';
+    const cacheable = file !== 'build/index.html';
     const buffer = this.cacheAssets && cacheable ? this.cache.get(file) : undefined;
     if (buffer !== undefined) {
       if (req.headers['if-none-match'] === buffer.hash) {

@@ -10,7 +10,7 @@
     ],
     "exclude": [
       "client/**/*.ts",
-      // Client parts of the optional extensions are bundled by webpack only
+      // Client parts of the optional extensions are bundled by Vite only
       "genfiles/extensionsClient.ts",
       "extensions/*/client/**/*.ts",
       "extensions/*/extension.client.ts"

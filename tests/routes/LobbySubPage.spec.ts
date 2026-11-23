@@ -9,7 +9,7 @@ describe('LobbySubPage', () => {
   it('renders the app page with a base for each lobby address', async () => {
     const original = ServeAsset.INSTANCE.renderAppPage;
     const bases: Array<string | undefined> = [];
-    const expectedLength = fs.readFileSync('assets/index.html').length;
+    const expectedLength = fs.readFileSync('build/index.html').length;
     ServeAsset.INSTANCE.renderAppPage = (raw: Buffer, base?: string) => {
       bases.push(base);
       return Buffer.from('rendered:' + raw.length);
