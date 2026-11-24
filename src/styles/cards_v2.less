@@ -1324,9 +1324,9 @@
   .card-content {
     color: black;
     position: relative;
-    display: flex;
-    flex-flow: column;
-    align-items: center;
+    // Block, not flex: Firefox does not include overflowing flex children in scrollHeight, so a flex
+    // scroll container with a fixed height cannot be scrolled. The flex layout lives in the inner wrapper.
+    display: block;
     width: 220px;
     height: 226px;
     padding: 10px;
@@ -1336,11 +1336,20 @@
     text-align: center;
     padding-bottom: 0px;
 
-    // Adding scrolling for cards with huge description
+    // Adding scrolling for cards with huge description. Vertical overflow is explicit: it must remain the
+    // scroll target even when the badges below are under the pointer (see their pointer-events: none).
+    // No overscroll-behavior: contain: a card whose text fits must let the wheel reach the column or panel
+    // behind it (otherwise the start-selection Preludes column does not scroll under the pointer).
     &:not(.global-event-card-content) {
-      overflow-x: hidden;
+      overflow: hidden auto;
       // Overlay bar ends above the points badge in the lower right corner (badge 46px + gap)
       --overlay-scrollbar-end-inset: 52px;
+    }
+
+    .card-content-inner {
+      display: flex;
+      flex-flow: column;
+      align-items: center;
     }
 
     &::-webkit-scrollbar-track {
@@ -1359,7 +1368,8 @@
       padding-bottom: 30px;
     }
     .bottom-padding-long {
-      padding-bottom: 50px;
+      // Clear the resource counter (30px) and the widest victory-point tab (Vermin: 46px), plus a gap
+      padding-bottom: 60px;
     }
   }
 
@@ -2802,6 +2812,13 @@ each(@parties, {
 
 .card-over {
   margin: 0px 0 -59px -59px;
+}
+
+// The badges lie over the scrollable text. They are only decoration: the wheel and clicks go through to the
+// card content below, so the text hidden behind them can be scrolled into view.
+.card-container > .card-points,
+.card-container > .card-resources-counter {
+  pointer-events: none;
 }
 
 .card-resources-counter {
