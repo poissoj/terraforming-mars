@@ -22,7 +22,7 @@ describe('AI stand-ins', () => {
 
   it('TypeScript AI players get only the quick answer (they already decided with the TypeScript AI)', () => {
     const [, player] = testGame(2);
-    player.aiEngine = 'typescript';
+    player.aiEngine = 'ts';
     expect(aiStandIns(player, new SelectOption('Pass'), {engine: 'rust', typescriptFallback: true}).map((standIn) => standIn.name)).deep.eq(['quick']);
   });
 

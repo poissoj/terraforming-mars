@@ -1398,8 +1398,7 @@ html.tm-mobile {
   .mb-screen--turn .payments_cont:has(> label.payments_cards):not(:has(.card-standard-project)) {
     display: grid !important;
     grid-template-columns: repeat(var(--mb-grid-columns, 2), max-content);
-    justify-content: center;
-    align-content: start;
+    place-content: start center;
     // Room at the top for the selection flag of the first row (with sections the heading provides it, below)
     padding-top: @selection-tab-offset;
     // Overhang on the right by the gap: the gap behind the right column falls out of view (choiceGap in mobileFit.ts)
