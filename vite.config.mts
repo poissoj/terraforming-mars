@@ -105,7 +105,17 @@ export default defineConfig({
     sourcemap: 'hidden',
     // One stylesheet for the whole app, generated from the Less link in index.html.
     cssCodeSplit: false,
+    // The main bundle is the app shell plus the shared game data, about 1.1 MB. Keep the warning for changes
+    // that make it substantially larger without hiding it behind a default 500 kB threshold.
+    chunkSizeWarningLimit: 1200,
     rollupOptions: {
+      // Images and fonts in the Less files are root-relative at runtime: the Node server serves assets/.
+      // Without this, Vite treats each url(./assets/…) as an unresolved build-time import and warns.
+      external: [/^(\.\/)?assets\//],
+      checks: {
+        // Vite's build is fast enough; the timing report is diagnostic noise in normal builds.
+        bundlerTimings: false,
+      },
       input: path.resolve(import.meta.dirname, 'index.html'),
       output: {
         entryFileNames: 'main-[hash].js',
